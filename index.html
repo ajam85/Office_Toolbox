@@ -101,6 +101,8 @@ select.inp option{background:var(--bg2);color:var(--text);}
 .date-today-btn:hover{background:var(--bg3);color:var(--text);}
 .date-inp{padding:5px 10px;font-size:13px;border-radius:7px;border:1px solid var(--border3);background:var(--bg2);color:var(--text);cursor:pointer;outline:none;}
 .date-label{font-size:14px;font-weight:600;color:var(--text);}
+.attendance-wrap{display:flex;align-items:center;gap:6px;margin-left:auto;flex-wrap:wrap;}
+.attendance-total{font-size:12px;font-weight:700;color:var(--accent);background:var(--accent-bg);border-radius:20px;padding:4px 10px;}
 .summary-chips{display:flex;gap:8px;margin-bottom:1.2rem;flex-wrap:wrap;}
 .chip{display:flex;flex-direction:column;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:8px 14px;min-width:110px;}
 .chip .cv{font-size:18px;font-weight:700;font-family:'Cascadia Code','Consolas',monospace;color:var(--text);}
@@ -328,6 +330,13 @@ input[type=checkbox]{width:15px;height:15px;accent-color:var(--accent);cursor:po
       <input type="date" class="date-inp" id="trk-date-inp" onchange="trkOnDateChange()">
       <button class="date-today-btn" onclick="trkGoToday()" id="trk-today-btn"></button>
       <span class="date-label" id="trk-date-label"></span>
+      <div class="attendance-wrap">
+        <button class="sbtn" onclick="trkPunch('checkIn')" id="trk-checkin-btn"></button>
+        <input type="time" class="mc-time-inp" id="trk-checkin-inp" onblur="trkSetAttendance('checkIn',this.value)" onkeydown="if(event.key==='Enter')this.blur()" onclick="try{this.showPicker&&this.showPicker()}catch(e){}">
+        <button class="sbtn" onclick="trkPunch('checkOut')" id="trk-checkout-btn"></button>
+        <input type="time" class="mc-time-inp" id="trk-checkout-inp" onblur="trkSetAttendance('checkOut',this.value)" onkeydown="if(event.key==='Enter')this.blur()" onclick="try{this.showPicker&&this.showPicker()}catch(e){}">
+        <span class="attendance-total" id="trk-attendance-total" style="display:none"></span>
+      </div>
     </div>
     <div class="summary-chips" id="trk-chips"></div>
     <div class="section-card">
@@ -551,6 +560,7 @@ const I18N = {
     edit: 'Upravit', editAction: '✏️ Upravit akci', actionName: 'Název akce', project: 'Projekt',
     time: 'Čas (hh : mm : ss)', cancel: 'Zrušit', save: 'Uložit', noProject: '— bez projektu —',
     start: '▶ Start', stop: '⏸ Stop',
+    checkIn: 'Příchod', checkOut: 'Odchod', attendanceLine: 'Docházka',
     overviewByProject: 'Přehled projektů za den', copy: '⧉ Kopírovat', copied: '✓ Zkopírováno',
     checkRowsOrCols: 'Zaškrtněte řádky nebo sloupce pro kopírování',
     colProject: 'Projekt', colAction: 'Akce', colTime: 'Čas',
@@ -562,7 +572,7 @@ const I18N = {
     calNoEvents: 'Žádné události.', calDayNotePlaceholder: 'Poznámka k tomuto dni…', calCopyNote: '⧉ Kopírovat',
     calPresets: 'Šablony poznámek', calPresetNamePh: 'Název šablony…', calPresetTextPh: 'Text šablony…',
     calNoPresets: 'Žádné šablony.', calManagePresets: 'Šablony', calDeleteEvent: 'Smazat', calSaveEvent: 'Uložit',
-    calAddPreset: '＋ Přidat šablonu', calEditEvent: '✏️ Událost', calToday: 'Dnes', calEvents: 'Události', calInsertPreset: 'Vložit',
+    calAddPreset: '＋ Přidat šablonu', calEditEvent: 'Událost', calToday: 'Dnes', calEvents: 'Události', calInsertPreset: 'Vložit',
     calColor: 'Barva', calInsertTracker: 'Data z Trackeru',
     notesAdd: '＋ Přidat poznámku', notesTitle: 'Nadpis poznámky…', notesText: 'Text poznámky…',
     notesSaveAsTxt: 'Uložit jako TXT', notesDownloaded: '✓ Staženo', notesLockedReadonly: '🔒 Záložka je zamčena – jen pro čtení',
@@ -598,6 +608,7 @@ const I18N = {
     edit: 'Edit', editAction: '✏️ Edit action', actionName: 'Action name', project: 'Project',
     time: 'Time (hh : mm : ss)', cancel: 'Cancel', save: 'Save', noProject: '— no project —',
     start: '▶ Start', stop: '⏸ Stop',
+    checkIn: 'Check-in', checkOut: 'Check-out', attendanceLine: 'Attendance',
     overviewByProject: 'Project overview for the day', copy: '⧉ Copy', copied: '✓ Copied',
     checkRowsOrCols: 'Check rows or columns to copy',
     colProject: 'Project', colAction: 'Action', colTime: 'Time',
@@ -609,7 +620,7 @@ const I18N = {
     calNoEvents: 'No events.', calDayNotePlaceholder: 'Note for this day…', calCopyNote: '⧉ Copy',
     calPresets: 'Note templates', calPresetNamePh: 'Template name…', calPresetTextPh: 'Template text…',
     calNoPresets: 'No templates.', calManagePresets: 'Templates', calDeleteEvent: 'Delete', calSaveEvent: 'Save',
-    calAddPreset: '＋ Add template', calEditEvent: '✏️ Event', calToday: 'Today', calEvents: 'Events', calInsertPreset: 'Insert',
+    calAddPreset: '＋ Add template', calEditEvent: 'Event', calToday: 'Today', calEvents: 'Events', calInsertPreset: 'Insert',
     calColor: 'Color', calInsertTracker: 'Tracker data',
     notesAdd: '＋ Add note', notesTitle: 'Note title…', notesText: 'Note text…',
     notesSaveAsTxt: 'Save as TXT', notesDownloaded: '✓ Downloaded', notesLockedReadonly: '🔒 Tab is locked – read only',
@@ -687,6 +698,9 @@ function renderStaticLabels(){
   set('em-save-btn', t('save'));
   set('lbl-editTask', t('editTask'));
   set('lbl-desc', t('desc'));
+  const ciBtn=document.getElementById('trk-checkin-btn'); if(ciBtn) ciBtn.innerHTML=CHECKIN_SVG+' '+t('checkIn');
+  const coBtn=document.getElementById('trk-checkout-btn'); if(coBtn) coBtn.innerHTML=CHECKOUT_SVG+' '+t('checkOut');
+  const ceTitle=document.getElementById('lbl-calEditEvent'); if(ceTitle) ceTitle.innerHTML=PENCIL_SVG+' '+t('calEditEvent');
   set('lbl-date1', t('date'));
   set('lbl-project2', t('project'));
   set('lbl-alarmEnable', t('alarmEnable'));
@@ -698,7 +712,6 @@ function renderStaticLabels(){
   set('am-save-btn', t('save'));
   set('tm-cancel-btn', t('cancel'));
   set('tm-save-btn', t('save'));
-  set('lbl-calEditEvent', t('calEditEvent'));
   set('lbl-calEventTitleLbl', t('desc'));
   set('lbl-date2', t('date'));
   set('lbl-calRecurLbl', t('calRecur'));
@@ -726,10 +739,13 @@ function renderStaticLabels(){
   renderAboutSection();
 }
 
-const APP_VERSION = '1.7.2';
-const APP_BUILD_DATE = '2026-08-06';
+const APP_VERSION = '1.8.1';
+const APP_BUILD_DATE = '2026-09-22';
 const AI_MODEL_INFO = 'Claude (Anthropic)';
 const CHANGELOG = [
+  { version: '1.8.1', notes: { cs: 'Tracker: u píchaček (Příchod/Odchod) se nyní počítá a zobrazuje celkový odpracovaný čas (např. 8:00 → 16:30 = 8:30), promítá se i do propsaného řádku v poznámce Kalendáře.', en: 'Tracker: the punch-clock (Check-in/Check-out) now calculates and shows total time worked (e.g. 8:00 → 16:30 = 8:30), also reflected in the synced Calendar note line.' } },
+  { version: '1.8.0', notes: { cs: 'Tracker: nová "píchačka" — tlačítka Příchod a Odchod vedle data, zaznamenají aktuální čas a lze je i ručně upravit jako ostatní časy v Trackeru. Naměřené časy se automaticky propisují jako řádek do poznámky odpovídajícího dne v Kalendáři.', en: 'Tracker: new punch-clock — Check-in and Check-out buttons next to the date, record the current time and can also be edited manually like other Tracker times. The measured times are automatically written as a line into the Calendar note for that day.' } },
+  { version: '1.7.3', notes: { cs: 'Kalendář: nahrazena emoji tužka ✏️ ve titulku události skutečnou ikonou, přidána ikona tužky u každé události v detailu dne pro konzistenci se zbytkem aplikace.', en: 'Calendar: replaced the ✏️ emoji pencil in the event modal title with a real icon, added a pencil icon to each event in the day detail for consistency with the rest of the app.' } },
   { version: '1.7.2', notes: { cs: 'Kalendář: emoji nahrazena ostrými SVG ikonami — kalendář u "Přidat událost", ikona Trackeru u "Data z Trackeru", ozubené kolo u "Šablony".', en: 'Calendar: emoji replaced with crisp SVG icons — calendar for "Add event", the Tracker icon for "Tracker data", a gear for "Templates".' } },
   { version: '1.7.1', notes: { cs: 'Kalendář: opravena neviditelná tečka poznámky (nahrazena náhledem textu v rámečku dne), události nyní barevně odlišitelné (výběr barvy jako u projektů), přidána možnost vložit data z Trackeru daného dne do poznámky.', en: 'Calendar: fixed invisible note dot (replaced with a text preview in the day cell), events can now be color-coded (same color picker as projects), added option to insert that day\'s Tracker data into the note.' } },
   { version: '1.7.0', notes: { cs: 'Nová záložka 📅 Kalendář: opakující se události (jednorázově/týdně/měsíčně), poznámka ke každému dni s možností kopírování, a předdefinované šablony poznámek (podobně jako projekty v Trackeru).', en: 'New 📅 Calendar tab: recurring events (one-time/weekly/monthly), per-day note with copy support, and predefined note templates (similar to Tracker projects).' } },
@@ -778,6 +794,8 @@ const NOTE_SVG='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stro
 const CHECKLIST_SVG='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 5h8"/><path d="M13 12h8"/><path d="M13 19h8"/><path d="m3 17 2 2 4-4"/><path d="m3 7 2 2 4-4"/></svg>';
 const TRACKER_SVG='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 14v2.2l1.6 1"/><path d="M16 2v4"/><path d="M21 7.5V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h3.5"/><path d="M3 10h5"/><path d="M8 2v4"/><circle cx="16" cy="16" r="6"/></svg>';
 const GEAR_SVG='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915"/><circle cx="12" cy="12" r="3"/></svg>';
+const CHECKIN_SVG='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" x2="3" y1="12" y2="12"/></svg>';
+const CHECKOUT_SVG='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>';
 const MOON_SVG='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"/></svg>';
 const SUN_SVG='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>';
 
@@ -796,6 +814,7 @@ let S={
   calEvents:[], // [{id,title,date:'YYYY-MM-DD',recur:'none'|'weekly'|'monthly'}]
   calNotes:{}, // {'YYYY-MM-DD': text}
   calPresets:[], // [{id,name,text}]
+  attendance:{}, // {'YYYY-MM-DD': {checkIn:'HH:MM', checkOut:'HH:MM'}}
 };
 
 /* PERSIST */
@@ -820,6 +839,7 @@ function loadS(){
     if(d.calEvents) S.calEvents=d.calEvents;
     if(d.calNotes) S.calNotes=d.calNotes;
     if(d.calPresets) S.calPresets=d.calPresets;
+    if(d.attendance) S.attendance=d.attendance;
   }catch(e){}
 }
 function saveS(){localStorage.setItem('pnt_v4',JSON.stringify(S));showAutosaveIndicator();}
@@ -955,7 +975,46 @@ function trkOnDateChange(){trkDate=document.getElementById('trk-date-inp').value
 function trkRenderDay(){
   document.getElementById('trk-date-inp').value=trkDate;
   document.getElementById('trk-date-label').textContent=dateLabel(trkDate);
+  trkRenderAttendance();
   trkFillSelects();trkRenderList();trkRenderChips();trkRenderAttrTable();trkStartTick();
+}
+function trkRenderAttendance(){
+  const att=S.attendance[trkDate]||{};
+  document.getElementById('trk-checkin-inp').value=att.checkIn||'';
+  document.getElementById('trk-checkout-inp').value=att.checkOut||'';
+  const totalEl=document.getElementById('trk-attendance-total');
+  const total=attendanceTotalStr(att);
+  if(total){ totalEl.textContent=t('total')+': '+total; totalEl.style.display=''; }
+  else{ totalEl.style.display='none'; }
+}
+function attendanceTotalStr(att){
+  if(!att||!att.checkIn||!att.checkOut) return null;
+  const mins=Math.round(trkCalcElapsed(att.checkIn,att.checkOut)/60);
+  return Math.floor(mins/60)+':'+pad(mins%60);
+}
+function trkPunch(type){
+  const now=new Date();
+  const val=pad(now.getHours())+':'+pad(now.getMinutes());
+  trkSetAttendance(type,val);
+}
+function trkSetAttendance(type,val){
+  if(!val)return;
+  if(!S.attendance[trkDate])S.attendance[trkDate]={};
+  S.attendance[trkDate][type]=val;
+  trkRenderAttendance();
+  calSyncAttendanceNote(trkDate);
+  saveS();
+}
+function calSyncAttendanceNote(dateStr){
+  const att=S.attendance[dateStr]||{};
+  const marker='⏱ '+t('attendanceLine')+': ';
+  const note=S.calNotes[dateStr]||'';
+  const lines=note.split('\n').filter(l=>!l.startsWith('⏱ ')); // strip any previous attendance line regardless of language
+  if(att.checkIn||att.checkOut){
+    const total=attendanceTotalStr(att);
+    lines.unshift(marker+(att.checkIn||'--:--')+' → '+(att.checkOut||'--:--')+(total?' = '+total:''));
+  }
+  S.calNotes[dateStr]=lines.join('\n').trim();
 }
 function trkFillSelects(){
   const ps=document.getElementById('trk-proj-sel'),pv=ps.value;
@@ -2025,6 +2084,7 @@ function renderCalDayModal(){
   evEl.innerHTML=evts.length?evts.map(ev=>{const c=ev.color||SWATCHES[0];return `<div class="cal-event-row" style="border-left:3px solid ${c}" onclick="openCalEventModal('${ev.id}','${dateStr}')">
       <span style="flex:1;color:${c};font-weight:600">${escH(ev.title)}</span>
       ${ev.recur&&ev.recur!=='none'?`<span class="cal-event-recur-badge">${t(ev.recur==='weekly'?'calRecurWeekly':'calRecurMonthly')}</span>`:''}
+      <span style="color:var(--text4);display:inline-flex">${PENCIL_SVG}</span>
     </div>`;}).join(''):`<div class="empty-state" style="padding:10px 0">${t('calNoEvents')}</div>`;
   document.getElementById('cal-day-note').value=S.calNotes[dateStr]||'';
   calRenderPresetSelect();
