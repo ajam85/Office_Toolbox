@@ -102,6 +102,13 @@ select.inp option{background:var(--bg2);color:var(--text);}
 .date-inp{padding:5px 10px;font-size:13px;border-radius:7px;border:1px solid var(--border3);background:var(--bg2);color:var(--text);cursor:pointer;outline:none;}
 .date-label{font-size:14px;font-weight:600;color:var(--text);}
 .attendance-wrap{display:flex;align-items:center;gap:6px;margin-left:auto;flex-wrap:wrap;}
+.trk-views{display:flex;gap:4px;margin-bottom:1rem;border-bottom:1px solid var(--border);}
+.trk-view-btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;font-size:12px;font-weight:500;color:var(--text4);background:none;border:none;border-bottom:2px solid transparent;margin-bottom:-1px;cursor:pointer;}
+.trk-view-btn:hover{color:var(--text2);}
+.trk-view-btn.active{color:var(--text);border-bottom-color:var(--accent);}
+.trk-log-row{display:flex;align-items:center;gap:8px;background:var(--bg2);border:1px solid var(--border);border-radius:9px;padding:8px 12px;font-size:13px;}
+.trk-log-ref{font-family:'Cascadia Code','Consolas',monospace;font-size:12px;font-weight:700;color:var(--accent);white-space:nowrap;}
+.trk-log-text{flex:1;word-break:break-word;color:var(--text);}
 .attendance-total{font-size:12px;font-weight:700;color:var(--accent);background:var(--accent-bg);border-radius:20px;padding:4px 10px;}
 .summary-chips{display:flex;gap:8px;margin-bottom:1.2rem;flex-wrap:wrap;}
 .chip{display:flex;flex-direction:column;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:8px 14px;min-width:110px;}
@@ -338,6 +345,11 @@ input[type=checkbox]{width:15px;height:15px;accent-color:var(--accent);cursor:po
         <span class="attendance-total" id="trk-attendance-total" style="display:none"></span>
       </div>
     </div>
+    <div class="trk-views">
+      <button class="trk-view-btn active" id="trk-view-time-btn" onclick="trkSetView('time')"></button>
+      <button class="trk-view-btn" id="trk-view-log-btn" onclick="trkSetView('log')"></button>
+    </div>
+    <div id="trk-view-time">
     <div class="summary-chips" id="trk-chips"></div>
     <div class="section-card">
       <div class="section-label" id="lbl-addAction"></div>
@@ -354,6 +366,23 @@ input[type=checkbox]{width:15px;height:15px;accent-color:var(--accent);cursor:po
       <div class="copy-bar">
         <span class="copy-bar-info" id="trk-copy-info"></span>
         <button class="sbtn" id="trk-copy-btn" onclick="trkCopy()"></button>
+      </div>
+    </div>
+    </div>
+    <div id="trk-view-log" style="display:none">
+      <div class="section-card">
+        <div class="section-label" id="lbl-logAdd"></div>
+        <div class="row">
+          <select class="inp" id="trk-log-proj" style="min-width:140px"></select>
+          <input class="inp" id="trk-log-ref" style="width:130px" onkeydown="if(event.key==='Enter')trkLogAdd()">
+          <input class="inp" id="trk-log-text" style="flex:1;min-width:200px" onkeydown="if(event.key==='Enter')trkLogAdd()">
+          <button class="sbtn accent" onclick="trkLogAdd()" id="trk-log-add-btn"></button>
+        </div>
+      </div>
+      <div id="trk-log-list" style="display:flex;flex-direction:column;gap:6px;margin-bottom:1rem;"></div>
+      <div class="copy-bar" id="trk-log-copybar" style="display:none">
+        <span class="copy-bar-info" id="trk-log-count"></span>
+        <button class="sbtn" id="trk-log-copy-btn" onclick="trkLogCopy()"></button>
       </div>
     </div>
   </div>
@@ -561,11 +590,12 @@ const I18N = {
     time: 'Čas (hh : mm : ss)', cancel: 'Zrušit', save: 'Uložit', noProject: '— bez projektu —',
     start: '▶ Start', stop: '⏸ Stop',
     checkIn: 'Příchod', checkOut: 'Odchod', attendanceLine: 'Docházka',
+    trkViewTime: 'Čas', trkViewLog: 'Záznamy dne', logAdd: 'Přidat záznam (ticket / úkol)', logRefPh: 'Ticket / č. úkolu…', logTextPh: 'Na čem jsem pracoval…', logAddBtn: '＋ Přidat', logNone: 'Pro tento den zatím nejsou žádné záznamy.', logCountTxt: 'Záznamů',
     overviewByProject: 'Přehled projektů za den', copy: '⧉ Kopírovat', copied: '✓ Zkopírováno',
     checkRowsOrCols: 'Zaškrtněte řádky nebo sloupce pro kopírování',
     colProject: 'Projekt', colAction: 'Akce', colTime: 'Čas',
     addTask: 'Přidat úkol', taskDesc: 'Popis úkolu…', noTasks: 'Žádné úkoly.',
-    editTask: '✏️ Upravit úkol', desc: 'Popis', date: 'Datum', urgent: 'Urgentní',
+    editTask: '✏️ Upravit úkol', desc: 'Popis', date: 'Datum', urgent: 'Urgentní', toLog: 'Propsat do záznamů dne',
     note: 'Poznámka', notePlaceholder: 'Poznámka k úkolu…', checklist: 'Checklist', checklistAddPlaceholder: 'Přidat položku…',
     tabCalendar: 'Kalendář', calAddEvent: '＋ Přidat událost', calEventTitle: 'Název události…', calRecur: 'Opakování',
     calRecurNone: 'Jednorázově', calRecurWeekly: 'Týdně', calRecurMonthly: 'Měsíčně',
@@ -609,11 +639,12 @@ const I18N = {
     time: 'Time (hh : mm : ss)', cancel: 'Cancel', save: 'Save', noProject: '— no project —',
     start: '▶ Start', stop: '⏸ Stop',
     checkIn: 'Check-in', checkOut: 'Check-out', attendanceLine: 'Attendance',
+    trkViewTime: 'Time', trkViewLog: 'Daily log', logAdd: 'Add entry (ticket / task)', logRefPh: 'Ticket / task no…', logTextPh: 'What I worked on…', logAddBtn: '＋ Add', logNone: 'No entries for this day yet.', logCountTxt: 'Entries',
     overviewByProject: 'Project overview for the day', copy: '⧉ Copy', copied: '✓ Copied',
     checkRowsOrCols: 'Check rows or columns to copy',
     colProject: 'Project', colAction: 'Action', colTime: 'Time',
     addTask: 'Add task', taskDesc: 'Task description…', noTasks: 'No tasks.',
-    editTask: '✏️ Edit task', desc: 'Description', date: 'Date', urgent: 'Urgent',
+    editTask: '✏️ Edit task', desc: 'Description', date: 'Date', urgent: 'Urgent', toLog: 'Add to daily log',
     note: 'Note', notePlaceholder: 'Task note…', checklist: 'Checklist', checklistAddPlaceholder: 'Add item…',
     tabCalendar: 'Calendar', calAddEvent: '＋ Add event', calEventTitle: 'Event title…', calRecur: 'Recurrence',
     calRecurNone: 'One-time', calRecurWeekly: 'Weekly', calRecurMonthly: 'Monthly',
@@ -698,6 +729,13 @@ function renderStaticLabels(){
   set('em-save-btn', t('save'));
   set('lbl-editTask', t('editTask'));
   set('lbl-desc', t('desc'));
+  const vtB=document.getElementById('trk-view-time-btn'); if(vtB) vtB.innerHTML=TRACKER_SVG+' '+t('trkViewTime');
+  const vlB=document.getElementById('trk-view-log-btn'); if(vlB) vlB.innerHTML=NOTE_SVG+' '+t('trkViewLog');
+  set('lbl-logAdd', t('logAdd'));
+  set('trk-log-add-btn', t('logAddBtn'));
+  set('trk-log-copy-btn', t('copy'));
+  const lrI=document.getElementById('trk-log-ref'); if(lrI) lrI.placeholder=t('logRefPh');
+  const ltI=document.getElementById('trk-log-text'); if(ltI) ltI.placeholder=t('logTextPh');
   const ciBtn=document.getElementById('trk-checkin-btn'); if(ciBtn) ciBtn.innerHTML=CHECKIN_SVG+' '+t('checkIn');
   const coBtn=document.getElementById('trk-checkout-btn'); if(coBtn) coBtn.innerHTML=CHECKOUT_SVG+' '+t('checkOut');
   const ceTitle=document.getElementById('lbl-calEditEvent'); if(ceTitle) ceTitle.innerHTML=PENCIL_SVG+' '+t('calEditEvent');
@@ -739,10 +777,12 @@ function renderStaticLabels(){
   renderAboutSection();
 }
 
-const APP_VERSION = '1.8.1';
-const APP_BUILD_DATE = '2026-09-22';
+const APP_VERSION = '1.9.1';
+const APP_BUILD_DATE = '2026-10-27';
 const AI_MODEL_INFO = 'Claude (Anthropic)';
 const CHANGELOG = [
+  { version: '1.9.1', notes: { cs: 'Ukolovník: nové tlačítko u úkolu, které propíše jeho název do Záznamů dne v Trackeru (na dnešní den, bez duplicit).', en: 'To-Do: new button on each task that copies its title into the Tracker Daily log (for today, no duplicates).' } },
+  { version: '1.9.0', notes: { cs: 'Tracker: nová podzáložka „Záznamy dne“ pro evidenci ticketů a úkolů, na kterých se daný den pracovalo (projekt, ticket, popis; úprava, mazání, kopírování). Přepínač Čas / Záznamy dne pod datem. Import dat nyní doplní chybějící pole ze starších záloh.', en: 'Tracker: new "Daily log" sub-view for tracking tickets and tasks worked on each day (project, ticket, description; edit, delete, copy). Time / Daily log switch under the date. Data import now fills in fields missing from older backups.' } },
   { version: '1.8.1', notes: { cs: 'Tracker: u píchaček (Příchod/Odchod) se nyní počítá a zobrazuje celkový odpracovaný čas (např. 8:00 → 16:30 = 8:30), promítá se i do propsaného řádku v poznámce Kalendáře.', en: 'Tracker: the punch-clock (Check-in/Check-out) now calculates and shows total time worked (e.g. 8:00 → 16:30 = 8:30), also reflected in the synced Calendar note line.' } },
   { version: '1.8.0', notes: { cs: 'Tracker: nová "píchačka" — tlačítka Příchod a Odchod vedle data, zaznamenají aktuální čas a lze je i ručně upravit jako ostatní časy v Trackeru. Naměřené časy se automaticky propisují jako řádek do poznámky odpovídajícího dne v Kalendáři.', en: 'Tracker: new punch-clock — Check-in and Check-out buttons next to the date, record the current time and can also be edited manually like other Tracker times. The measured times are automatically written as a line into the Calendar note for that day.' } },
   { version: '1.7.3', notes: { cs: 'Kalendář: nahrazena emoji tužka ✏️ ve titulku události skutečnou ikonou, přidána ikona tužky u každé události v detailu dne pro konzistenci se zbytkem aplikace.', en: 'Calendar: replaced the ✏️ emoji pencil in the event modal title with a real icon, added a pencil icon to each event in the day detail for consistency with the rest of the app.' } },
@@ -794,6 +834,7 @@ const NOTE_SVG='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stro
 const CHECKLIST_SVG='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 5h8"/><path d="M13 12h8"/><path d="M13 19h8"/><path d="m3 17 2 2 4-4"/><path d="m3 7 2 2 4-4"/></svg>';
 const TRACKER_SVG='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 14v2.2l1.6 1"/><path d="M16 2v4"/><path d="M21 7.5V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h3.5"/><path d="M3 10h5"/><path d="M8 2v4"/><circle cx="16" cy="16" r="6"/></svg>';
 const GEAR_SVG='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915"/><circle cx="12" cy="12" r="3"/></svg>';
+const LOGADD_SVG='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 5H3"/><path d="M11 12H3"/><path d="M16 19H3"/><path d="M18 9v6"/><path d="M21 12h-6"/></svg>';
 const CHECKIN_SVG='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" x2="3" y1="12" y2="12"/></svg>';
 const CHECKOUT_SVG='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>';
 const MOON_SVG='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"/></svg>';
@@ -815,6 +856,7 @@ let S={
   calNotes:{}, // {'YYYY-MM-DD': text}
   calPresets:[], // [{id,name,text}]
   attendance:{}, // {'YYYY-MM-DD': {checkIn:'HH:MM', checkOut:'HH:MM'}}
+  trkLog:{}, // {'YYYY-MM-DD': [{id,proj,ref,text}]}
 };
 
 /* PERSIST */
@@ -840,6 +882,7 @@ function loadS(){
     if(d.calNotes) S.calNotes=d.calNotes;
     if(d.calPresets) S.calPresets=d.calPresets;
     if(d.attendance) S.attendance=d.attendance;
+    if(d.trkLog) S.trkLog=d.trkLog;
   }catch(e){}
 }
 function saveS(){localStorage.setItem('pnt_v4',JSON.stringify(S));showAutosaveIndicator();}
@@ -977,6 +1020,79 @@ function trkRenderDay(){
   document.getElementById('trk-date-label').textContent=dateLabel(trkDate);
   trkRenderAttendance();
   trkFillSelects();trkRenderList();trkRenderChips();trkRenderAttrTable();trkStartTick();
+  trkApplyView();
+}
+let trkView='time', trkLogEditId=null;
+function trkSetView(v){trkView=v;trkApplyView();}
+function trkApplyView(){
+  const isLog=trkView==='log';
+  document.getElementById('trk-view-time').style.display=isLog?'none':'';
+  document.getElementById('trk-view-log').style.display=isLog?'':'none';
+  document.getElementById('trk-view-time-btn').classList.toggle('active',!isLog);
+  document.getElementById('trk-view-log-btn').classList.toggle('active',isLog);
+  if(isLog) trkRenderLog();
+}
+function trkLogItems(){return S.trkLog[trkDate]||(S.trkLog[trkDate]=[]);}
+function trkLogProjOptions(sel){
+  return `<option value="">${t('noProject')}</option>`+S.projDefs.map(p=>`<option value="${escH(p.name)}"${p.name===sel?' selected':''}>${escH(p.name)}</option>`).join('');
+}
+function trkRenderLog(){
+  const ps=document.getElementById('trk-log-proj'),pv=ps.value;
+  ps.innerHTML=trkLogProjOptions(pv);
+  const items=S.trkLog[trkDate]||[];
+  const list=document.getElementById('trk-log-list');
+  if(!items.length){
+    list.innerHTML=`<div class="empty-state" style="padding:1.5rem">${t('logNone')}</div>`;
+  }else{
+    list.innerHTML=items.map(it=>{
+      if(it.id===trkLogEditId){
+        return `<div class="trk-log-row">
+          <select class="inp" id="tle-proj" style="min-width:120px">${trkLogProjOptions(it.proj)}</select>
+          <input class="inp" id="tle-ref" style="width:120px" value="${escH(it.ref||'')}" onkeydown="if(event.key==='Enter')trkLogSaveEdit('${it.id}')">
+          <input class="inp" id="tle-text" style="flex:1;min-width:160px" value="${escH(it.text||'')}" onkeydown="if(event.key==='Enter')trkLogSaveEdit('${it.id}')">
+          <button class="sbtn accent" onclick="trkLogSaveEdit('${it.id}')">${t('save')}</button>
+          <button class="sbtn" onclick="trkLogEditId=null;trkRenderLog()">${t('cancel')}</button>
+        </div>`;
+      }
+      const proj=it.proj?getProj(it.proj):null;
+      const badge=proj?`<span class="todo-proj-badge" style="color:${proj.color};border-color:${proj.color};background:${proj.color}18">${escH(proj.name)}</span>`:'';
+      return `<div class="trk-log-row">
+        ${badge}${it.ref?`<span class="trk-log-ref">${escH(it.ref)}</span>`:''}
+        <span class="trk-log-text">${escH(it.text||'')}</span>
+        <button class="sbtn" style="padding:5px 8px" onclick="trkLogEditId='${it.id}';trkRenderLog()">${PENCIL_SVG}</button>
+        <button class="del-btn" onclick="trkLogDelete('${it.id}')">×</button>
+      </div>`;
+    }).join('');
+  }
+  const bar=document.getElementById('trk-log-copybar');
+  bar.style.display=items.length?'':'none';
+  document.getElementById('trk-log-count').textContent=t('logCountTxt')+': '+items.length;
+}
+function trkLogAdd(){
+  const proj=document.getElementById('trk-log-proj').value;
+  const refI=document.getElementById('trk-log-ref'),textI=document.getElementById('trk-log-text');
+  const ref=refI.value.trim(),text=textI.value.trim();
+  if(!ref&&!text)return;
+  trkLogItems().push({id:uid(),proj,ref,text});
+  refI.value='';textI.value='';
+  saveS();trkRenderLog();
+  refI.focus();
+}
+function trkLogSaveEdit(id){
+  const it=trkLogItems().find(x=>x.id===id);if(!it)return;
+  it.proj=document.getElementById('tle-proj').value;
+  it.ref=document.getElementById('tle-ref').value.trim();
+  it.text=document.getElementById('tle-text').value.trim();
+  trkLogEditId=null;saveS();trkRenderLog();
+}
+function trkLogDelete(id){
+  S.trkLog[trkDate]=trkLogItems().filter(x=>x.id!==id);
+  saveS();trkRenderLog();
+}
+function trkLogCopy(){
+  const lines=trkLogItems().map(it=>[it.proj,it.ref,it.text].filter(Boolean).join(' - '));
+  if(!lines.length)return;
+  copyText(lines.join('\n'),'trk-log-copy-btn');
 }
 function trkRenderAttendance(){
   const att=S.attendance[trkDate]||{};
@@ -1243,6 +1359,7 @@ function renderTodoContent(){
           </div>
         </div>
         </div>
+        <button class="sbtn" style="padding:5px 8px" onclick="todoToLog('${tab.id}','${item.id}',this)" title="${t('toLog')}">${LOGADD_SVG}</button>
         <button class="sbtn${item.urgent?' urgent-active':''}" style="padding:5px 8px" onclick="todoToggleUrgent('${tab.id}','${item.id}')" title="${t('urgent')}">${FLAME_SVG}</button>
         <button class="sbtn${item.note?' has-content':''}" style="padding:5px 8px" onclick="todoTogglePanel('${noteId}')" title="${t('note')}">${NOTE_SVG}</button>
         <button class="sbtn${clItems.length?' has-content':''}" style="padding:5px 8px" onclick="todoTogglePanel('${clId}')" title="${t('checklist')}${clCount}">${CHECKLIST_SVG}</button>
@@ -1302,6 +1419,18 @@ function todoChecklistDelete(tabId,itemId,clId){
   item.checklist=item.checklist.filter(c=>c.id!==clId);saveS();renderTodoContent();
 }
 function todoToggle(tabId,itemId,checked){const tab=S.todoTabs.find(x=>x.id===tabId);if(!tab)return;const item=tab.items.find(i=>i.id===itemId);if(!item)return;item.done=checked;saveS();renderTodoContent();}
+function todoToLog(tabId,itemId,btn){
+  const tab=S.todoTabs.find(x=>x.id===tabId);if(!tab)return;
+  const item=tab.items.find(i=>i.id===itemId);if(!item)return;
+  const day=todayStr();
+  if(!S.trkLog[day])S.trkLog[day]=[];
+  const txt=(item.desc||'').trim();
+  if(txt&&!S.trkLog[day].some(x=>!x.ref&&!x.proj&&x.text===txt)){
+    S.trkLog[day].push({id:uid(),proj:'',ref:'',text:txt});
+    saveS();
+  }
+  if(btn){const o=btn.innerHTML;btn.innerHTML='✓';btn.classList.add('copied');setTimeout(()=>{btn.innerHTML=o;btn.classList.remove('copied');},1500);}
+}
 function todoToggleUrgent(tabId,itemId){const tab=S.todoTabs.find(x=>x.id===tabId);if(!tab)return;const item=tab.items.find(i=>i.id===itemId);if(!item)return;item.urgent=!item.urgent;saveS();renderTodoContent();}
 function todoDelete(tabId,itemId){const tab=S.todoTabs.find(x=>x.id===tabId);if(!tab)return;tab.items=tab.items.filter(i=>i.id!==itemId);saveS();renderTodoContent();}
 function openTodoModal(tabId,itemId){
@@ -1726,7 +1855,7 @@ function spSetColor(i,c){S.projDefs[i].color=c;saveS();spRenderProj();}
 
 /* EXPORT / IMPORT */
 function exportData(){const blob=new Blob([JSON.stringify(S,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='pracovni_nastroje_'+todayStr()+'.json';document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);}
-function importData(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{const d=JSON.parse(ev.target.result);if(d.akceDefs&&d.projDefs&&d.days){S=d;saveS();trkRenderDay();renderTodoTabs();renderNotesTabs();renderGridTabs();closeSettings();alert(t('importOk'));}else alert(t('importBadFormat'));}catch{alert(t('importError'));}};r.readAsText(f);e.target.value='';}
+function importData(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{const d=JSON.parse(ev.target.result);if(d.akceDefs&&d.projDefs&&d.days){S=d;S.calEvents=S.calEvents||[];S.calNotes=S.calNotes||{};S.calPresets=S.calPresets||[];S.attendance=S.attendance||{};S.trkLog=S.trkLog||{};saveS();trkRenderDay();renderTodoTabs();renderNotesTabs();renderGridTabs();closeSettings();alert(t('importOk'));}else alert(t('importBadFormat'));}catch{alert(t('importError'));}};r.readAsText(f);e.target.value='';}
 
 /* THEME */
 function toggleTheme(){
