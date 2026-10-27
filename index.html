@@ -372,6 +372,10 @@ input[type=checkbox]{width:15px;height:15px;accent-color:var(--accent);cursor:po
     <div id="trk-view-log" style="display:none">
       <div class="section-card">
         <div class="section-label" id="lbl-logAdd"></div>
+        <div class="row" style="margin-bottom:8px">
+          <select class="inp" id="trk-log-def-sel" style="flex:1;min-width:200px" onchange="trkLogPickDef(this)"></select>
+          <button class="sbtn" id="trk-log-defs-btn" onclick="openTrkDefsModal()"></button>
+        </div>
         <div class="row">
           <select class="inp" id="trk-log-proj" style="min-width:140px"></select>
           <input class="inp" id="trk-log-ref" style="width:130px" onkeydown="if(event.key==='Enter')trkLogAdd()">
@@ -505,6 +509,11 @@ input[type=checkbox]{width:15px;height:15px;accent-color:var(--accent);cursor:po
   </div>
 </div>
 
+<!-- TRACKER PREDEFINED LOG TASKS MODAL -->
+<div class="modal-ov" id="trk-defs-modal-ov" onclick="if(event.target===this)closeTrkDefsModal()">
+  <div class="modal" style="width:540px"><div id="trk-defs-modal-body"></div></div>
+</div>
+
 <!-- CALENDAR EVENT MODAL -->
 <div class="modal-ov" id="cal-event-modal-ov" onclick="if(event.target===this)closeCalEventModal()">
   <div class="modal">
@@ -590,7 +599,7 @@ const I18N = {
     time: 'Čas (hh : mm : ss)', cancel: 'Zrušit', save: 'Uložit', noProject: '— bez projektu —',
     start: '▶ Start', stop: '⏸ Stop',
     checkIn: 'Příchod', checkOut: 'Odchod', attendanceLine: 'Docházka',
-    trkViewTime: 'Čas', trkViewLog: 'Záznamy dne', logAdd: 'Přidat záznam (ticket / úkol)', logRefPh: 'Ticket / č. úkolu…', logTextPh: 'Na čem jsem pracoval…', logAddBtn: '＋ Přidat', logNone: 'Pro tento den zatím nejsou žádné záznamy.', logCountTxt: 'Záznamů',
+    trkViewTime: 'Čas', trkViewLog: 'Záznamy dne', logAdd: 'Přidat záznam (ticket / úkol)', logRefPh: 'Ticket / č. úkolu…', logTextPh: 'Na čem jsem pracoval…', logAddBtn: '＋ Přidat', logNone: 'Pro tento den zatím nejsou žádné záznamy.', logCountTxt: 'Záznamů', logDefs: 'Předdefinované úkoly', logDefSel: '— předdefinovaný úkol / nadúkol —', logDefNone: 'Žádné předdefinované úkoly.', logDefTextPh: 'Název úkolu / nadúkolu…', colTicket: 'Ticket', colDesc: 'Popis',
     overviewByProject: 'Přehled projektů za den', copy: '⧉ Kopírovat', copied: '✓ Zkopírováno',
     checkRowsOrCols: 'Zaškrtněte řádky nebo sloupce pro kopírování',
     colProject: 'Projekt', colAction: 'Akce', colTime: 'Čas',
@@ -639,7 +648,7 @@ const I18N = {
     time: 'Time (hh : mm : ss)', cancel: 'Cancel', save: 'Save', noProject: '— no project —',
     start: '▶ Start', stop: '⏸ Stop',
     checkIn: 'Check-in', checkOut: 'Check-out', attendanceLine: 'Attendance',
-    trkViewTime: 'Time', trkViewLog: 'Daily log', logAdd: 'Add entry (ticket / task)', logRefPh: 'Ticket / task no…', logTextPh: 'What I worked on…', logAddBtn: '＋ Add', logNone: 'No entries for this day yet.', logCountTxt: 'Entries',
+    trkViewTime: 'Time', trkViewLog: 'Daily log', logAdd: 'Add entry (ticket / task)', logRefPh: 'Ticket / task no…', logTextPh: 'What I worked on…', logAddBtn: '＋ Add', logNone: 'No entries for this day yet.', logCountTxt: 'Entries', logDefs: 'Predefined tasks', logDefSel: '— predefined task / parent task —', logDefNone: 'No predefined tasks.', logDefTextPh: 'Task / parent task name…', colTicket: 'Ticket', colDesc: 'Description',
     overviewByProject: 'Project overview for the day', copy: '⧉ Copy', copied: '✓ Copied',
     checkRowsOrCols: 'Check rows or columns to copy',
     colProject: 'Project', colAction: 'Action', colTime: 'Time',
@@ -733,6 +742,7 @@ function renderStaticLabels(){
   const vlB=document.getElementById('trk-view-log-btn'); if(vlB) vlB.innerHTML=NOTE_SVG+' '+t('trkViewLog');
   set('lbl-logAdd', t('logAdd'));
   set('trk-log-add-btn', t('logAddBtn'));
+  const ldB=document.getElementById('trk-log-defs-btn'); if(ldB) ldB.innerHTML=GEAR_SVG+' '+t('logDefs');
   set('trk-log-copy-btn', t('copy'));
   const lrI=document.getElementById('trk-log-ref'); if(lrI) lrI.placeholder=t('logRefPh');
   const ltI=document.getElementById('trk-log-text'); if(ltI) ltI.placeholder=t('logTextPh');
@@ -777,10 +787,11 @@ function renderStaticLabels(){
   renderAboutSection();
 }
 
-const APP_VERSION = '1.9.1';
+const APP_VERSION = '1.10.0';
 const APP_BUILD_DATE = '2026-10-27';
 const AI_MODEL_INFO = 'Claude (Anthropic)';
 const CHANGELOG = [
+  { version: '1.10.0', notes: { cs: 'Záznamy dne: tabulka s výběrem řádků a sloupců (Projekt / Ticket / Popis) a kopírováním ve formátu Projekt-Ticket-Popis jako u časovače. Nově lze nadefinovat napevno úkoly a nadúkoly (projekt + ticket + název) a rychle je vybrat při přidávání záznamu.', en: 'Daily log: table with row and column selection (Project / Ticket / Description) and copying as Project-Ticket-Description like the timer. You can now define fixed tasks and parent tasks (project + ticket + name) and pick them quickly when adding an entry.' } },
   { version: '1.9.1', notes: { cs: 'Ukolovník: nové tlačítko u úkolu, které propíše jeho název do Záznamů dne v Trackeru (na dnešní den, bez duplicit).', en: 'To-Do: new button on each task that copies its title into the Tracker Daily log (for today, no duplicates).' } },
   { version: '1.9.0', notes: { cs: 'Tracker: nová podzáložka „Záznamy dne“ pro evidenci ticketů a úkolů, na kterých se daný den pracovalo (projekt, ticket, popis; úprava, mazání, kopírování). Přepínač Čas / Záznamy dne pod datem. Import dat nyní doplní chybějící pole ze starších záloh.', en: 'Tracker: new "Daily log" sub-view for tracking tickets and tasks worked on each day (project, ticket, description; edit, delete, copy). Time / Daily log switch under the date. Data import now fills in fields missing from older backups.' } },
   { version: '1.8.1', notes: { cs: 'Tracker: u píchaček (Příchod/Odchod) se nyní počítá a zobrazuje celkový odpracovaný čas (např. 8:00 → 16:30 = 8:30), promítá se i do propsaného řádku v poznámce Kalendáře.', en: 'Tracker: the punch-clock (Check-in/Check-out) now calculates and shows total time worked (e.g. 8:00 → 16:30 = 8:30), also reflected in the synced Calendar note line.' } },
@@ -857,6 +868,7 @@ let S={
   calPresets:[], // [{id,name,text}]
   attendance:{}, // {'YYYY-MM-DD': {checkIn:'HH:MM', checkOut:'HH:MM'}}
   trkLog:{}, // {'YYYY-MM-DD': [{id,proj,ref,text}]}
+  trkLogDefs:[], // predefined tasks [{id,proj,ref,text}]
 };
 
 /* PERSIST */
@@ -883,6 +895,7 @@ function loadS(){
     if(d.calPresets) S.calPresets=d.calPresets;
     if(d.attendance) S.attendance=d.attendance;
     if(d.trkLog) S.trkLog=d.trkLog;
+    if(d.trkLogDefs) S.trkLogDefs=d.trkLogDefs;
   }catch(e){}
 }
 function saveS(){localStorage.setItem('pnt_v4',JSON.stringify(S));showAutosaveIndicator();}
@@ -1036,38 +1049,93 @@ function trkLogItems(){return S.trkLog[trkDate]||(S.trkLog[trkDate]=[]);}
 function trkLogProjOptions(sel){
   return `<option value="">${t('noProject')}</option>`+S.projDefs.map(p=>`<option value="${escH(p.name)}"${p.name===sel?' selected':''}>${escH(p.name)}</option>`).join('');
 }
+let trkLogRowChecks={},trkLogColChecks={projekt:false,ticket:false,popis:false};
 function trkRenderLog(){
   const ps=document.getElementById('trk-log-proj'),pv=ps.value;
   ps.innerHTML=trkLogProjOptions(pv);
+  const ds=document.getElementById('trk-log-def-sel');
+  ds.innerHTML=`<option value="">${t('logDefSel')}</option>`+(S.trkLogDefs||[]).map(d=>`<option value="${d.id}">${escH([d.proj,d.ref,d.text].filter(Boolean).join(' - '))}</option>`).join('');
   const items=S.trkLog[trkDate]||[];
+  const ids=new Set(items.map(i=>i.id));Object.keys(trkLogRowChecks).forEach(k=>{if(!ids.has(k))delete trkLogRowChecks[k];});
   const list=document.getElementById('trk-log-list');
   if(!items.length){
     list.innerHTML=`<div class="empty-state" style="padding:1.5rem">${t('logNone')}</div>`;
   }else{
-    list.innerHTML=items.map(it=>{
+    const allChecked=items.every(i=>trkLogRowChecks[i.id]);
+    const colTh=(key,label)=>`<th><label style="display:flex;align-items:center;gap:6px;cursor:pointer"><input type="checkbox" ${trkLogColChecks[key]?'checked':''} onchange="trkLogColChecks.${key}=this.checked;trkLogUpdateCopyBar()"> ${label}</label></th>`;
+    let html=`<div class="attr-wrap"><table class="attr-tbl"><thead><tr>
+      <th class="cc"><input type="checkbox" ${allChecked?'checked':''} onchange="trkLogToggleAll(this.checked)"></th>
+      ${colTh('projekt',t('colProject'))}${colTh('ticket',t('colTicket'))}${colTh('popis',t('colDesc'))}<th></th>
+    </tr></thead><tbody>`;
+    items.forEach(it=>{
       if(it.id===trkLogEditId){
-        return `<div class="trk-log-row">
-          <select class="inp" id="tle-proj" style="min-width:120px">${trkLogProjOptions(it.proj)}</select>
-          <input class="inp" id="tle-ref" style="width:120px" value="${escH(it.ref||'')}" onkeydown="if(event.key==='Enter')trkLogSaveEdit('${it.id}')">
-          <input class="inp" id="tle-text" style="flex:1;min-width:160px" value="${escH(it.text||'')}" onkeydown="if(event.key==='Enter')trkLogSaveEdit('${it.id}')">
-          <button class="sbtn accent" onclick="trkLogSaveEdit('${it.id}')">${t('save')}</button>
-          <button class="sbtn" onclick="trkLogEditId=null;trkRenderLog()">${t('cancel')}</button>
-        </div>`;
+        html+=`<tr class="data"><td class="cc"></td>
+          <td><select class="inp" id="tle-proj" style="width:100%">${trkLogProjOptions(it.proj)}</select></td>
+          <td><input class="inp" id="tle-ref" style="width:100%" value="${escH(it.ref||'')}" onkeydown="if(event.key==='Enter')trkLogSaveEdit('${it.id}')"></td>
+          <td><input class="inp" id="tle-text" style="width:100%" value="${escH(it.text||'')}" onkeydown="if(event.key==='Enter')trkLogSaveEdit('${it.id}')"></td>
+          <td style="white-space:nowrap;text-align:right"><button class="sbtn accent" onclick="trkLogSaveEdit('${it.id}')">${t('save')}</button> <button class="sbtn" onclick="trkLogEditId=null;trkRenderLog()">${t('cancel')}</button></td></tr>`;
+        return;
       }
       const proj=it.proj?getProj(it.proj):null;
-      const badge=proj?`<span class="todo-proj-badge" style="color:${proj.color};border-color:${proj.color};background:${proj.color}18">${escH(proj.name)}</span>`:'';
-      return `<div class="trk-log-row">
-        ${badge}${it.ref?`<span class="trk-log-ref">${escH(it.ref)}</span>`:''}
-        <span class="trk-log-text">${escH(it.text||'')}</span>
-        <button class="sbtn" style="padding:5px 8px" onclick="trkLogEditId='${it.id}';trkRenderLog()">${PENCIL_SVG}</button>
-        <button class="del-btn" onclick="trkLogDelete('${it.id}')">×</button>
-      </div>`;
-    }).join('');
+      const projCell=proj?`<span class="cdot" style="background:${proj.color}"></span>${escH(proj.name)}`:'<span style="color:var(--text5)">—</span>';
+      html+=`<tr class="data"><td class="cc"><input type="checkbox" ${trkLogRowChecks[it.id]?'checked':''} onchange="trkLogRowChecks['${it.id}']=this.checked;trkLogUpdateCopyBar();trkLogSyncAll()"></td>
+        <td style="font-size:12px">${projCell}</td>
+        <td>${it.ref?`<span class="trk-log-ref">${escH(it.ref)}</span>`:'<span style="color:var(--text5)">—</span>'}</td>
+        <td style="word-break:break-word">${escH(it.text||'')}</td>
+        <td style="white-space:nowrap;text-align:right"><button class="sbtn" style="padding:5px 8px" onclick="trkLogEditId='${it.id}';trkRenderLog()">${PENCIL_SVG}</button> <button class="del-btn" onclick="trkLogDelete('${it.id}')">×</button></td></tr>`;
+    });
+    html+='</tbody></table></div>';
+    list.innerHTML=html;
   }
-  const bar=document.getElementById('trk-log-copybar');
-  bar.style.display=items.length?'':'none';
-  document.getElementById('trk-log-count').textContent=t('logCountTxt')+': '+items.length;
+  document.getElementById('trk-log-copybar').style.display=items.length?'':'none';
+  trkLogUpdateCopyBar();
 }
+function trkLogToggleAll(ch){(S.trkLog[trkDate]||[]).forEach(i=>trkLogRowChecks[i.id]=ch);trkRenderLog();}
+function trkLogSyncAll(){const items=S.trkLog[trkDate]||[];const cb=document.querySelector('#trk-log-list thead input[type=checkbox]');if(cb)cb.checked=items.length>0&&items.every(i=>trkLogRowChecks[i.id]);}
+function trkLogUpdateCopyBar(){
+  const items=S.trkLog[trkDate]||[],sel=items.filter(i=>trkLogRowChecks[i.id]);
+  const cols=Object.entries(trkLogColChecks).filter(([,v])=>v).map(([k])=>({projekt:t('colProject'),ticket:t('colTicket'),popis:t('colDesc')})[k]);
+  const parts=[];if(sel.length)parts.push(`${sel.length} ${t('logCountTxt').toLowerCase()}`);if(cols.length)parts.push((currentLang==='en'?'columns: ':'sloupce: ')+cols.join(', '));
+  document.getElementById('trk-log-count').textContent=parts.length?parts.join(' · '):t('checkRowsOrCols');
+}
+function trkLogPickDef(sel){
+  const d=(S.trkLogDefs||[]).find(x=>x.id===sel.value);if(!d)return;
+  document.getElementById('trk-log-proj').value=d.proj||'';
+  document.getElementById('trk-log-ref').value=d.ref||'';
+  const ti=document.getElementById('trk-log-text');ti.value=d.text||'';
+  sel.value='';ti.focus();
+}
+function openTrkDefsModal(){
+  document.getElementById('trk-defs-modal-body').innerHTML=`<div class="modal-title">${t('logDefs')}</div>
+    <div id="trk-defs-list" style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px;max-height:260px;overflow-y:auto"></div>
+    <div class="row">
+      <select class="inp" id="trk-def-proj" style="min-width:130px">${trkLogProjOptions('')}</select>
+      <input class="inp" id="trk-def-ref" style="width:120px" placeholder="${escH(t('logRefPh'))}" onkeydown="if(event.key==='Enter')trkDefAdd()">
+      <input class="inp" id="trk-def-text" style="flex:1;min-width:150px" placeholder="${escH(t('logDefTextPh'))}" onkeydown="if(event.key==='Enter')trkDefAdd()">
+      <button class="sbtn accent" onclick="trkDefAdd()">${t('logAddBtn')}</button>
+    </div>
+    <div class="modal-footer"><button class="sbtn" onclick="closeTrkDefsModal()">${t('cancel')}</button></div>`;
+  trkRenderDefsList();
+  document.getElementById('trk-defs-modal-ov').classList.add('open');
+}
+function closeTrkDefsModal(){document.getElementById('trk-defs-modal-ov').classList.remove('open');trkRenderLog();}
+function trkRenderDefsList(){
+  const defs=S.trkLogDefs||[];
+  document.getElementById('trk-defs-list').innerHTML=defs.length?defs.map(d=>{
+    const proj=d.proj?getProj(d.proj):null;
+    const badge=proj?`<span class="todo-proj-badge" style="color:${proj.color};border-color:${proj.color};background:${proj.color}18">${escH(proj.name)}</span>`:'';
+    return `<div class="cal-preset-row">${badge}${d.ref?`<span class="trk-log-ref">${escH(d.ref)}</span>`:''}<span class="cal-preset-text" style="color:var(--text)">${escH(d.text||'')}</span><button class="del-btn" onclick="trkDefDelete('${d.id}')">×</button></div>`;
+  }).join(''):`<div class="empty-state" style="padding:10px 0">${t('logDefNone')}</div>`;
+}
+function trkDefAdd(){
+  const proj=document.getElementById('trk-def-proj').value,refI=document.getElementById('trk-def-ref'),textI=document.getElementById('trk-def-text');
+  const ref=refI.value.trim(),text=textI.value.trim();
+  if(!ref&&!text)return;
+  if(!S.trkLogDefs)S.trkLogDefs=[];
+  S.trkLogDefs.push({id:uid(),proj,ref,text});
+  refI.value='';textI.value='';saveS();trkRenderDefsList();refI.focus();
+}
+function trkDefDelete(id){S.trkLogDefs=(S.trkLogDefs||[]).filter(d=>d.id!==id);saveS();trkRenderDefsList();}
 function trkLogAdd(){
   const proj=document.getElementById('trk-log-proj').value;
   const refI=document.getElementById('trk-log-ref'),textI=document.getElementById('trk-log-text');
@@ -1090,7 +1158,12 @@ function trkLogDelete(id){
   saveS();trkRenderLog();
 }
 function trkLogCopy(){
-  const lines=trkLogItems().map(it=>[it.proj,it.ref,it.text].filter(Boolean).join(' - '));
+  const items=S.trkLog[trkDate]||[];
+  const cols=['projekt','ticket','popis'].filter(k=>trkLogColChecks[k]);
+  const sel=items.filter(i=>trkLogRowChecks[i.id]);
+  const rows=sel.length?sel:items;
+  const useCols=cols.length?cols:['projekt','ticket','popis'];
+  const lines=rows.map(it=>{const p=[];if(useCols.includes('projekt'))p.push(it.proj);if(useCols.includes('ticket'))p.push(it.ref);if(useCols.includes('popis'))p.push(it.text);return p.filter(Boolean).join('-');}).filter(Boolean);
   if(!lines.length)return;
   copyText(lines.join('\n'),'trk-log-copy-btn');
 }
@@ -1855,7 +1928,7 @@ function spSetColor(i,c){S.projDefs[i].color=c;saveS();spRenderProj();}
 
 /* EXPORT / IMPORT */
 function exportData(){const blob=new Blob([JSON.stringify(S,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='pracovni_nastroje_'+todayStr()+'.json';document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);}
-function importData(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{const d=JSON.parse(ev.target.result);if(d.akceDefs&&d.projDefs&&d.days){S=d;S.calEvents=S.calEvents||[];S.calNotes=S.calNotes||{};S.calPresets=S.calPresets||[];S.attendance=S.attendance||{};S.trkLog=S.trkLog||{};saveS();trkRenderDay();renderTodoTabs();renderNotesTabs();renderGridTabs();closeSettings();alert(t('importOk'));}else alert(t('importBadFormat'));}catch{alert(t('importError'));}};r.readAsText(f);e.target.value='';}
+function importData(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{const d=JSON.parse(ev.target.result);if(d.akceDefs&&d.projDefs&&d.days){S=d;S.calEvents=S.calEvents||[];S.calNotes=S.calNotes||{};S.calPresets=S.calPresets||[];S.attendance=S.attendance||{};S.trkLog=S.trkLog||{};S.trkLogDefs=S.trkLogDefs||[];saveS();trkRenderDay();renderTodoTabs();renderNotesTabs();renderGridTabs();closeSettings();alert(t('importOk'));}else alert(t('importBadFormat'));}catch{alert(t('importError'));}};r.readAsText(f);e.target.value='';}
 
 /* THEME */
 function toggleTheme(){
