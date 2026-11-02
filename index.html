@@ -109,6 +109,7 @@ select.inp option{background:var(--bg2);color:var(--text);}
 .trk-log-row{display:flex;align-items:center;gap:8px;background:var(--bg2);border:1px solid var(--border);border-radius:9px;padding:8px 12px;font-size:13px;}
 .trk-log-ref{font-family:'Cascadia Code','Consolas',monospace;font-size:12px;font-weight:700;color:var(--accent);white-space:nowrap;}
 .trk-log-text{flex:1;word-break:break-word;color:var(--text);}
+.mc-time-inp.att-auto,.mc-time-inp.att-auto-in{font-style:italic;color:var(--accent);border-style:dashed;}
 .attendance-total{font-size:12px;font-weight:700;color:var(--accent);background:var(--accent-bg);border-radius:20px;padding:4px 10px;}
 .summary-chips{display:flex;gap:8px;margin-bottom:1.2rem;flex-wrap:wrap;}
 .chip{display:flex;flex-direction:column;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:8px 14px;min-width:110px;}
@@ -189,6 +190,14 @@ input[type=checkbox]{width:15px;height:15px;accent-color:var(--accent);cursor:po
 .cal-day-note-preview{font-size:10px;color:var(--text4);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:3px;}
 .cal-day-note-preview svg{flex-shrink:0;}
 .cal-day-flags{display:flex;gap:4px;align-items:center;}
+.cal-day-worked{display:flex;align-items:center;gap:4px;font-size:10px;font-weight:600;color:var(--text2);}
+.cal-day-worked .over{color:var(--accent);}
+.cal-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin-top:14px;}
+.cal-sum-item{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:10px 12px;}
+.cal-sum-item.over{border-color:var(--accent);background:var(--accent-bg);}
+.cal-sum-val{font-size:18px;font-weight:700;color:var(--text);font-family:'Cascadia Code','Consolas',monospace;}
+.cal-sum-item.over .cal-sum-val{color:var(--accent);}
+.cal-sum-lbl{font-size:11px;color:var(--text4);margin-top:2px;}
 .cal-preset-row{display:flex;align-items:center;gap:8px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:12px;}
 .cal-preset-row .cal-preset-name{font-weight:600;min-width:80px;}
 .cal-preset-row .cal-preset-text{flex:1;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
@@ -372,12 +381,9 @@ input[type=checkbox]{width:15px;height:15px;accent-color:var(--accent);cursor:po
     <div id="trk-view-log" style="display:none">
       <div class="section-card">
         <div class="section-label" id="lbl-logAdd"></div>
-        <div class="row" style="margin-bottom:8px">
-          <select class="inp" id="trk-log-def-sel" style="flex:1;min-width:200px" onchange="trkLogPickDef(this)"></select>
-          <button class="sbtn" id="trk-log-defs-btn" onclick="openTrkDefsModal()"></button>
-        </div>
         <div class="row">
           <select class="inp" id="trk-log-proj" style="min-width:140px"></select>
+          <select class="inp" id="trk-log-akce" style="min-width:160px"></select>
           <input class="inp" id="trk-log-ref" style="width:130px" onkeydown="if(event.key==='Enter')trkLogAdd()">
           <input class="inp" id="trk-log-text" style="flex:1;min-width:200px" onkeydown="if(event.key==='Enter')trkLogAdd()">
           <button class="sbtn accent" onclick="trkLogAdd()" id="trk-log-add-btn"></button>
@@ -442,6 +448,20 @@ input[type=checkbox]{width:15px;height:15px;accent-color:var(--accent);cursor:po
           <button class="sbtn" onclick="document.getElementById('import-file').click()" id="import-btn"></button>
           <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(event)">
         </div>
+      </div>
+      <div class="sp-section">
+        <div class="sp-sec-title" id="lbl-attSettings"></div>
+        <div style="font-size:12px;color:var(--text3);margin-bottom:6px" id="lbl-attPresetOut"></div>
+        <div class="row" style="gap:8px;margin-bottom:4px">
+          <input type="time" class="inp" id="sp-att-preset" onchange="spAttSave()" onclick="try{this.showPicker&&this.showPicker()}catch(e){}">
+          <button class="sbtn" onclick="spAttClearPreset()" id="sp-att-clear">×</button>
+        </div>
+        <div style="font-size:11px;color:var(--text4);margin-bottom:12px" id="lbl-attPresetHint"></div>
+        <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text3);cursor:pointer;margin-bottom:4px"><input type="checkbox" id="sp-att-close" onchange="spAttSave()"> <span id="lbl-attAutoPunch"></span></label>
+        <div style="font-size:11px;color:var(--text4);margin-bottom:12px" id="lbl-attAutoPunchHint"></div>
+        <div style="font-size:12px;color:var(--text3);margin-bottom:6px" id="lbl-attHours"></div>
+        <div class="row" style="gap:8px;margin-bottom:4px"><input type="number" class="inp" id="sp-att-hours" min="0" max="24" step="0.25" style="width:90px" onchange="spAttSave()"></div>
+        <div style="font-size:11px;color:var(--text4)" id="lbl-attHoursHint"></div>
       </div>
       <div class="sp-section">
         <div class="sp-sec-title" id="lbl-actionsListTitle"></div>
@@ -509,11 +529,6 @@ input[type=checkbox]{width:15px;height:15px;accent-color:var(--accent);cursor:po
   </div>
 </div>
 
-<!-- TRACKER PREDEFINED LOG TASKS MODAL -->
-<div class="modal-ov" id="trk-defs-modal-ov" onclick="if(event.target===this)closeTrkDefsModal()">
-  <div class="modal" style="width:540px"><div id="trk-defs-modal-body"></div></div>
-</div>
-
 <!-- CALENDAR EVENT MODAL -->
 <div class="modal-ov" id="cal-event-modal-ov" onclick="if(event.target===this)closeCalEventModal()">
   <div class="modal">
@@ -545,6 +560,8 @@ input[type=checkbox]{width:15px;height:15px;accent-color:var(--accent);cursor:po
 <div class="modal-ov" id="cal-day-modal-ov" onclick="if(event.target===this)closeCalDayModal()">
   <div class="modal" style="max-width:480px">
     <div class="modal-title" id="cal-day-title"></div>
+    <div class="modal-row"><div class="modal-label" id="lbl-calDayTypeLbl"></div><select class="modal-inp" id="cal-day-type" onchange="calSetDayType(this.value)"></select></div>
+    <div id="cal-day-att" style="display:none;font-size:12px;color:var(--text2);margin-bottom:10px;align-items:center;gap:4px"></div>
     <div class="modal-row"><div class="modal-label" id="lbl-calEventsLbl"></div></div>
     <div id="cal-day-events" style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px;"></div>
     <button class="sbtn" id="cal-day-add-event-btn" onclick="openCalEventModal(null,calDayModalDate)" style="margin-bottom:14px;"></button>
@@ -599,7 +616,8 @@ const I18N = {
     time: 'Čas (hh : mm : ss)', cancel: 'Zrušit', save: 'Uložit', noProject: '— bez projektu —',
     start: '▶ Start', stop: '⏸ Stop',
     checkIn: 'Příchod', checkOut: 'Odchod', attendanceLine: 'Docházka',
-    trkViewTime: 'Čas', trkViewLog: 'Záznamy dne', logAdd: 'Přidat záznam (ticket / úkol)', logRefPh: 'Ticket / č. úkolu…', logTextPh: 'Na čem jsem pracoval…', logAddBtn: '＋ Přidat', logNone: 'Pro tento den zatím nejsou žádné záznamy.', logCountTxt: 'Záznamů', logDefs: 'Předdefinované úkoly', logDefSel: '— předdefinovaný úkol / nadúkol —', logDefNone: 'Žádné předdefinované úkoly.', logDefTextPh: 'Název úkolu / nadúkolu…', colTicket: 'Ticket', colDesc: 'Popis',
+    attSettings: 'Docházka (píchačka)', attPresetOut: 'Předdefinovaný čas odchodu', attPresetHint: 'Po zaznamenání Příchodu se předvyplní do Odchodu. Ručně zadaný čas se nepřepisuje.', attAutoPunch: 'Automaticky zapsat příchod (spuštění aplikace) a odchod (zavření aplikace)', attAutoPunchHint: 'Příchod se zapíše při prvním spuštění aplikace v daný den, odchod při zavření. Ručně zadané časy se nepřepisují. O víkendech a ve dnech označených jako dovolená / nemoc / svátek se nezapisuje. Při násilném ukončení (vypnutí počítače, pád) se odchod nezapíše.', attHours: 'Pracovní doba (hodin za den)', attHoursHint: 'Čas nad touto dobou se v Kalendáři počítá jako přesčas. Práce o víkendu a ve dnech volna je celá přesčas.', calDayType: 'Typ dne', dayNone: '— běžný den —', dayVacation: 'Dovolená', daySick: 'Nemoc', dayHoliday: 'Státní svátek', calFillHolidays: 'Státní svátky ČR', sumWorked: 'Odpracováno', sumOvertime: 'Přesčas', sumDays: 'Odpracované dny', sumVacation: 'Dovolená (dny)', sumSick: 'Nemoc (dny)', sumHolidays: 'Státní svátky (dny)', calDayWorked: 'Odpracováno', calDayOver: 'přesčas', attAutoTip: 'Doplněno automaticky – přepíšete ručním zadáním',
+    trkViewTime: 'Čas', trkViewLog: 'Záznamy dne', logAdd: 'Přidat záznam (nadúkol → ticket a vykonaná práce)', logRefPh: 'Ticket / č. úkolu…', logTextPh: 'Vykonaná práce…', logAddBtn: '＋ Přidat', logNone: 'Pro tento den zatím nejsou žádné záznamy.', logCountTxt: 'Záznamů', colTicket: 'Ticket', colDesc: 'Práce', colParent: 'Nadúkol', logAkceNone: '— nadúkol —', logAkceTip: 'Nadúkol = akce z Trackeru. Samotný nadúkol (bez ticketu a popisu) vytvoří hlavičku skupiny.',
     overviewByProject: 'Přehled projektů za den', copy: '⧉ Kopírovat', copied: '✓ Zkopírováno',
     checkRowsOrCols: 'Zaškrtněte řádky nebo sloupce pro kopírování',
     colProject: 'Projekt', colAction: 'Akce', colTime: 'Čas',
@@ -648,7 +666,8 @@ const I18N = {
     time: 'Time (hh : mm : ss)', cancel: 'Cancel', save: 'Save', noProject: '— no project —',
     start: '▶ Start', stop: '⏸ Stop',
     checkIn: 'Check-in', checkOut: 'Check-out', attendanceLine: 'Attendance',
-    trkViewTime: 'Time', trkViewLog: 'Daily log', logAdd: 'Add entry (ticket / task)', logRefPh: 'Ticket / task no…', logTextPh: 'What I worked on…', logAddBtn: '＋ Add', logNone: 'No entries for this day yet.', logCountTxt: 'Entries', logDefs: 'Predefined tasks', logDefSel: '— predefined task / parent task —', logDefNone: 'No predefined tasks.', logDefTextPh: 'Task / parent task name…', colTicket: 'Ticket', colDesc: 'Description',
+    attSettings: 'Attendance (punch clock)', attPresetOut: 'Predefined check-out time', attPresetHint: 'Pre-filled into Check-out once Check-in is recorded. A manually entered time is never overwritten.', attAutoPunch: 'Automatically record check-in (app start) and check-out (app close)', attAutoPunchHint: 'Check-in is recorded on the first app start of the day, check-out on close. Manually entered times are never overwritten. Nothing is recorded on weekends or on days marked as vacation / sick / holiday. A forced shutdown (power off, crash) records no check-out.', attHours: 'Working hours (per day)', attHoursHint: 'Time above this is counted as overtime in the Calendar. Work on weekends and days off counts as overtime in full.', calDayType: 'Day type', dayNone: '— regular day —', dayVacation: 'Vacation', daySick: 'Sick leave', dayHoliday: 'Public holiday', calFillHolidays: 'Czech public holidays', sumWorked: 'Time worked', sumOvertime: 'Overtime', sumDays: 'Days worked', sumVacation: 'Vacation (days)', sumSick: 'Sick (days)', sumHolidays: 'Public holidays (days)', calDayWorked: 'Worked', calDayOver: 'overtime', attAutoTip: 'Filled in automatically – enter a time manually to override',
+    trkViewTime: 'Time', trkViewLog: 'Daily log', logAdd: 'Add entry (parent task → ticket and work done)', logRefPh: 'Ticket / task no…', logTextPh: 'Work done…', logAddBtn: '＋ Add', logNone: 'No entries for this day yet.', logCountTxt: 'Entries', colTicket: 'Ticket', colDesc: 'Work done', colParent: 'Parent task', logAkceNone: '— parent task —', logAkceTip: 'Parent task = a Tracker action. A parent task alone (no ticket or description) creates a group header.',
     overviewByProject: 'Project overview for the day', copy: '⧉ Copy', copied: '✓ Copied',
     checkRowsOrCols: 'Check rows or columns to copy',
     colProject: 'Project', colAction: 'Action', colTime: 'Time',
@@ -703,7 +722,7 @@ function rerenderEverything(){
   renderNotesTabs();
   renderGridTabs();
   if(document.getElementById('pane-alarm').classList.contains('active')) renderAlarmPage();
-  if(document.getElementById('settings-ov').classList.contains('open')){ spRenderAkce(); spRenderProj(); renderAboutSection(); }
+  if(document.getElementById('settings-ov').classList.contains('open')){ spAttRender(); spRenderAkce(); spRenderProj(); renderAboutSection(); }
 }
 
 function renderStaticLabels(){
@@ -738,11 +757,11 @@ function renderStaticLabels(){
   set('em-save-btn', t('save'));
   set('lbl-editTask', t('editTask'));
   set('lbl-desc', t('desc'));
+  set('lbl-attSettings', t('attSettings'));set('lbl-attPresetOut', t('attPresetOut'));set('lbl-attPresetHint', t('attPresetHint'));set('lbl-attAutoPunch', t('attAutoPunch'));set('lbl-attAutoPunchHint', t('attAutoPunchHint'));set('lbl-attHours', t('attHours'));set('lbl-attHoursHint', t('attHoursHint'));
   const vtB=document.getElementById('trk-view-time-btn'); if(vtB) vtB.innerHTML=TRACKER_SVG+' '+t('trkViewTime');
   const vlB=document.getElementById('trk-view-log-btn'); if(vlB) vlB.innerHTML=NOTE_SVG+' '+t('trkViewLog');
   set('lbl-logAdd', t('logAdd'));
   set('trk-log-add-btn', t('logAddBtn'));
-  const ldB=document.getElementById('trk-log-defs-btn'); if(ldB) ldB.innerHTML=GEAR_SVG+' '+t('logDefs');
   set('trk-log-copy-btn', t('copy'));
   const lrI=document.getElementById('trk-log-ref'); if(lrI) lrI.placeholder=t('logRefPh');
   const ltI=document.getElementById('trk-log-text'); if(ltI) ltI.placeholder=t('logTextPh');
@@ -771,6 +790,7 @@ function renderStaticLabels(){
   set('ce-cancel-btn', t('cancel'));
   set('ce-save-btn', t('calSaveEvent'));
   set('lbl-calEventsLbl', t('calEvents'));
+  set('lbl-calDayTypeLbl', t('calDayType'));
   const dayAddEvBtn=document.getElementById('cal-day-add-event-btn'); if(dayAddEvBtn) dayAddEvBtn.innerHTML=CAL_SVG+' '+t('calAddEvent');
   const dayNoteEl=document.getElementById('cal-day-note'); if(dayNoteEl) dayNoteEl.placeholder=t('calDayNotePlaceholder');
   set('cal-day-insert-preset-btn', t('calInsertPreset'));
@@ -787,10 +807,15 @@ function renderStaticLabels(){
   renderAboutSection();
 }
 
-const APP_VERSION = '1.10.0';
+const APP_VERSION = '1.14.0';
 const APP_BUILD_DATE = '2026-10-27';
 const AI_MODEL_INFO = 'Claude (Anthropic)';
 const CHANGELOG = [
+  { version: '1.14.0', notes: { cs: 'Oprava: krok na předchozí den přeskakoval o dva dny (a krok dopředu se zasekl) – datumy se nově počítají v místním čase; stejná chyba způsobovala, že „dnes“ bylo po půlnoci ještě včerejšek. Docházka: jedno zaškrtávací pole zapíše příchod při spuštění a odchod při zavření aplikace (ručně zadané časy se nepřepisují). Kalendář: typ dne (dovolená / nemoc / státní svátek, tlačítko pro státní svátky ČR), v dnech odpracovaná doba a přesčas, pod kalendářem měsíční souhrn (odpracováno, přesčas, odpracované dny, dovolená, nemoc, svátky). Pracovní doba v hodinách se nastavuje v Nastavení.', en: 'Fix: stepping to the previous day skipped two days (and stepping forward got stuck) – dates are now computed in local time; the same bug made "today" still be yesterday after midnight. Attendance: one checkbox records check-in on app start and check-out on close (manual times are never overwritten). Calendar: day type (vacation / sick / public holiday, button for Czech public holidays), worked time and overtime per day, monthly summary below the calendar (time worked, overtime, days worked, vacation, sick, holidays). Working hours per day are set in Settings.' } },
+  { version: '1.13.0', notes: { cs: 'Píchačka: v Nastavení lze zadat předdefinovaný čas odchodu (předvyplní se po zaznamenání Příchodu) a zapnout automatický zápis odchodu při zavření aplikace. Automaticky doplněný odchod je zobrazen kurzívou a ručně zadaný čas se nikdy nepřepisuje. Prázdným polem lze čas Příchodu/Odchodu smazat.', en: 'Punch clock: Settings now has a predefined check-out time (pre-filled once Check-in is recorded) and an option to record check-out automatically when the app is closed. An automatically filled check-out is shown in italics and a manually entered time is never overwritten. Clearing the field removes the Check-in/Check-out time.' } },
+  { version: '1.12.0', notes: { cs: 'Záznamy dne – Nadúkol: nový výběr Nadúkol (akce z Trackeru) vedle projektu. Nadúkol = projekt + akce; lze přidat samotný (vznikne hlavička skupiny, bez duplicit). Záznamy s ticketem a popisem se řadí pod hlavičku odsazené. Po přidání zůstane vybraný projekt a nadúkol. Kopírování: „Projekt - Nadúkol“ a pod ním řádky „ticket - popis“, záznamy bez nadúkolu jako dřív. Starší záznamy se chovají beze změny.', en: 'Daily log – Parent task: new Parent task select (Tracker action) next to the project. Parent task = project + action; it can be added on its own (creates a group header, no duplicates). Entries with ticket and description are listed indented under the header. Project and parent task stay selected after adding. Copy: "Project - Parent task" with "ticket - description" lines below; entries without a parent task as before. Older entries behave unchanged.' } },
+  { version: '1.11.0', notes: { cs: 'Záznamy dne: nadúkoly jsou předdefinované akce z Trackeru. Záznam se přidává pod nadúkol (Projekt - Nadúkol) jako ticket a vykonaná práce; tabulka je seskupená podle nadúkolů, tlačítko + u skupiny předvyplní další záznam. Kopírování umí sloupce Projekt / Nadúkol / Ticket / Práce. Odstraněn samostatný seznam předdefinovaných úkolů z verze 1.10.', en: 'Daily log: parent tasks are the predefined actions from the Tracker. Entries are added under a parent task (Project - Parent task) as ticket and work done; the table is grouped by parent task and the + button on a group pre-fills the next entry. Copy supports Project / Parent task / Ticket / Work columns. The separate predefined-task list from 1.10 was removed.' } },
+  { version: '1.10.1', notes: { cs: 'Oprava Úkolovníku: rozepsaný (ještě nepřidaný) úkol, jeho datum a projekt se už neztratí při klepnutí na jiné tlačítko v seznamu (urgence, hotovo, checklist, propis do záznamů apod.) ani při přepnutí záložky. Po přidání úkolu zůstává kurzor v poli pro další.', en: 'To-Do fix: a task being typed (not yet added), with its date and project, is no longer lost when pressing another button in the list (urgency, done, checklist, log, etc.) or when switching tabs. The cursor stays in the field after adding.' } },
   { version: '1.10.0', notes: { cs: 'Záznamy dne: tabulka s výběrem řádků a sloupců (Projekt / Ticket / Popis) a kopírováním ve formátu Projekt-Ticket-Popis jako u časovače. Nově lze nadefinovat napevno úkoly a nadúkoly (projekt + ticket + název) a rychle je vybrat při přidávání záznamu.', en: 'Daily log: table with row and column selection (Project / Ticket / Description) and copying as Project-Ticket-Description like the timer. You can now define fixed tasks and parent tasks (project + ticket + name) and pick them quickly when adding an entry.' } },
   { version: '1.9.1', notes: { cs: 'Ukolovník: nové tlačítko u úkolu, které propíše jeho název do Záznamů dne v Trackeru (na dnešní den, bez duplicit).', en: 'To-Do: new button on each task that copies its title into the Tracker Daily log (for today, no duplicates).' } },
   { version: '1.9.0', notes: { cs: 'Tracker: nová podzáložka „Záznamy dne“ pro evidenci ticketů a úkolů, na kterých se daný den pracovalo (projekt, ticket, popis; úprava, mazání, kopírování). Přepínač Čas / Záznamy dne pod datem. Import dat nyní doplní chybějící pole ze starších záloh.', en: 'Tracker: new "Daily log" sub-view for tracking tickets and tasks worked on each day (project, ticket, description; edit, delete, copy). Time / Daily log switch under the date. Data import now fills in fields missing from older backups.' } },
@@ -867,8 +892,9 @@ let S={
   calNotes:{}, // {'YYYY-MM-DD': text}
   calPresets:[], // [{id,name,text}]
   attendance:{}, // {'YYYY-MM-DD': {checkIn:'HH:MM', checkOut:'HH:MM'}}
-  trkLog:{}, // {'YYYY-MM-DD': [{id,proj,ref,text}]}
-  trkLogDefs:[], // predefined tasks [{id,proj,ref,text}]
+  trkLog:{}, // {'YYYY-MM-DD': [{id,proj,akce,ref,text}]}
+  attCfg:{presetOut:'',autoPunch:false,dayHours:8}, // punch-clock + work-time settings
+  calDayType:{}, // {'YYYY-MM-DD': 'vacation'|'sick'|'holiday'}
 };
 
 /* PERSIST */
@@ -895,7 +921,9 @@ function loadS(){
     if(d.calPresets) S.calPresets=d.calPresets;
     if(d.attendance) S.attendance=d.attendance;
     if(d.trkLog) S.trkLog=d.trkLog;
-    if(d.trkLogDefs) S.trkLogDefs=d.trkLogDefs;
+    if(d.attCfg) S.attCfg=attCfgNormalize(d.attCfg);
+    if(d.calDayType) S.calDayType=d.calDayType;
+    migrateTrkLog();
   }catch(e){}
 }
 function saveS(){localStorage.setItem('pnt_v4',JSON.stringify(S));showAutosaveIndicator();}
@@ -909,14 +937,15 @@ function showAutosaveIndicator(){
 
 /* UTILS */
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
-function todayStr(){return new Date().toISOString().slice(0,10);}
+function localDateStr(dt){return dt.getFullYear()+'-'+pad(dt.getMonth()+1)+'-'+pad(dt.getDate());}
+function todayStr(){return localDateStr(new Date());}
 function pad(n){return String(n).padStart(2,'0');}
 function fmtSecs(s){s=Math.max(0,Math.round(s));const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),ss=s%60;return h>0?`${pad(h)}:${pad(m)}:${pad(ss)}`:`${pad(m)}:${pad(ss)}`;}
 function getProj(name){return S.projDefs.find(p=>p.name===name)||{name,color:'#6a6660'};}
 function getDayMs(d){if(!S.days[d])S.days[d]=[];return S.days[d];}
 function getLiveElapsed(m){return m.running?(m.elapsed||0)+(Date.now()-m.startedAt)/1000:(m.elapsed||0);}
 function dateLabel(d){
-  const today=todayStr(),yest=new Date();yest.setDate(yest.getDate()-1);const ys=yest.toISOString().slice(0,10);
+  const today=todayStr(),yest=new Date();yest.setDate(yest.getDate()-1);const ys=localDateStr(yest);
   const str=new Date(d+'T00:00:00').toLocaleDateString('cs-CZ',{weekday:'long',day:'numeric',month:'long'});
   return d===today?str+' (dnes)':d===ys?str+' (včera)':str;
 }
@@ -928,11 +957,6 @@ function copyText(text,btnId){
 
 /* MAIN TABS */
 function switchMain(tab){
-  // Save todo draft before leaving
-  const descInp=document.getElementById('todo-desc-inp');
-  const dateInp=document.getElementById('todo-date-inp');
-  const projInp=document.getElementById('todo-proj-inp');
-  if(descInp) S.todoDraft={desc:descInp.value,date:dateInp?.value||'',proj:projInp?.value||''};
   document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.main-tab').forEach(mt=>mt.classList.remove('active'));
   document.getElementById('pane-'+tab).classList.add('active');
@@ -1025,7 +1049,7 @@ function buildSubTabBar(bar,tabs,activeId,setActive,rename,lockFn,unlockFn,delFn
 let trkDate=todayStr(),trkTick=null,editingMId=null;
 let trkColChecks={projekt:false,akce:false,cas:false},trkRowChecks={};
 
-function trkChangeDay(d){const dt=new Date(trkDate+'T00:00:00');dt.setDate(dt.getDate()+d);trkDate=dt.toISOString().slice(0,10);trkRenderDay();}
+function trkChangeDay(d){const dt=new Date(trkDate+'T00:00:00');dt.setDate(dt.getDate()+d);trkDate=localDateStr(dt);trkRenderDay();}
 function trkGoToday(){trkDate=todayStr();trkRenderDay();}
 function trkOnDateChange(){trkDate=document.getElementById('trk-date-inp').value;trkRenderDay();}
 function trkRenderDay(){
@@ -1045,44 +1069,74 @@ function trkApplyView(){
   document.getElementById('trk-view-log-btn').classList.toggle('active',isLog);
   if(isLog) trkRenderLog();
 }
-function trkLogItems(){return S.trkLog[trkDate]||(S.trkLog[trkDate]=[]);}
-function trkLogProjOptions(sel){
-  return `<option value="">${t('noProject')}</option>`+S.projDefs.map(p=>`<option value="${escH(p.name)}"${p.name===sel?' selected':''}>${escH(p.name)}</option>`).join('');
+function attCfgNormalize(cfg){
+  cfg=cfg||{};
+  const h=parseFloat(cfg.dayHours);
+  return {presetOut:cfg.presetOut||'',autoPunch:!!(cfg.autoPunch||cfg.autoOnClose),dayHours:(isFinite(h)&&h>=0&&h<=24)?h:8};
 }
-let trkLogRowChecks={},trkLogColChecks={projekt:false,ticket:false,popis:false};
+function migrateTrkLog(){Object.values(S.trkLog||{}).forEach(a=>(a||[]).forEach(e=>{if(e.parent&&!e.akce)e.akce=e.parent;delete e.parent;}));}
+function trkLogItems(){return S.trkLog[trkDate]||(S.trkLog[trkDate]=[]);}
+let trkLogRowChecks={},trkLogColChecks={projekt:false,akce:false,ticket:false,popis:false},trkLogBlocks=[];
+function trkLogKey(it){return (it.proj||'')+'|'+(it.akce||'');}
+function trkLogGroups(items){
+  const blocks=[],byKey={};
+  items.forEach(it=>{
+    if(!it.akce){blocks.push({type:'row',item:it});return;}
+    const k=trkLogKey(it);
+    let g=byKey[k];
+    if(!g){g=byKey[k]={type:'group',key:k,proj:it.proj||'',akce:it.akce,header:null,items:[]};blocks.push(g);}
+    if(!it.ref&&!it.text){if(!g.header)g.header=it;}else g.items.push(it);
+  });
+  return blocks;
+}
+function trkLogAkceOptions(sel){
+  const list=S.akceDefs.slice();
+  if(sel&&!list.includes(sel))list.push(sel);
+  return `<option value="">${t('logAkceNone')}</option>`+list.map(n=>`<option value="${escH(n)}"${n===sel?' selected':''}>${escH(n)}</option>`).join('');
+}
+function trkLogRowHtml(it,indent){
+  const dash='<span style="color:var(--text5)">—</span>';
+  if(it.id===trkLogEditId){
+    return `<tr class="data"><td class="cc"></td>
+      <td><select class="inp" id="tle-proj" style="width:100%">${trkLogProjOptions(it.proj)}</select></td>
+      <td><select class="inp" id="tle-akce" style="width:100%">${trkLogAkceOptions(it.akce||'')}</select></td>
+      <td><input class="inp" id="tle-ref" style="width:100%" value="${escH(it.ref||'')}" onkeydown="if(event.key==='Enter')trkLogSaveEdit('${it.id}')"></td>
+      <td><input class="inp" id="tle-text" style="width:100%" value="${escH(it.text||'')}" onkeydown="if(event.key==='Enter')trkLogSaveEdit('${it.id}')"></td>
+      <td style="white-space:nowrap;text-align:right"><button class="sbtn accent" onclick="trkLogSaveEdit('${it.id}')">${t('save')}</button> <button class="sbtn" onclick="trkLogEditId=null;trkRenderLog()">${t('cancel')}</button></td></tr>`;
+  }
+  return `<tr class="data"><td class="cc"><input type="checkbox" ${trkLogRowChecks[it.id]?'checked':''} onchange="trkLogRowChecks['${it.id}']=this.checked;trkLogUpdateCopyBar();trkLogSyncAll()"></td>
+    <td style="color:var(--text3);font-size:12px;${indent?'padding-left:22px':''}">${it.proj?escH(it.proj):dash}</td>
+    <td style="color:var(--text3);font-size:12px">${it.akce?escH(it.akce):dash}</td>
+    <td>${it.ref?`<span class="trk-log-ref">${escH(it.ref)}</span>`:dash}</td>
+    <td style="word-break:break-word">${escH(it.text||'')}</td>
+    <td style="white-space:nowrap;text-align:right"><button class="sbtn" style="padding:5px 8px" onclick="trkLogEditId='${it.id}';trkRenderLog()">${PENCIL_SVG}</button> <button class="del-btn" onclick="trkLogDelete('${it.id}')">×</button></td></tr>`;
+}
 function trkRenderLog(){
   const ps=document.getElementById('trk-log-proj'),pv=ps.value;
   ps.innerHTML=trkLogProjOptions(pv);
-  const ds=document.getElementById('trk-log-def-sel');
-  ds.innerHTML=`<option value="">${t('logDefSel')}</option>`+(S.trkLogDefs||[]).map(d=>`<option value="${d.id}">${escH([d.proj,d.ref,d.text].filter(Boolean).join(' - '))}</option>`).join('');
+  const as=document.getElementById('trk-log-akce'),av=as.value;
+  as.innerHTML=trkLogAkceOptions(av);as.title=t('logAkceTip');
   const items=S.trkLog[trkDate]||[];
   const ids=new Set(items.map(i=>i.id));Object.keys(trkLogRowChecks).forEach(k=>{if(!ids.has(k))delete trkLogRowChecks[k];});
   const list=document.getElementById('trk-log-list');
+  trkLogBlocks=trkLogGroups(items);
   if(!items.length){
     list.innerHTML=`<div class="empty-state" style="padding:1.5rem">${t('logNone')}</div>`;
   }else{
-    const allChecked=items.every(i=>trkLogRowChecks[i.id]);
+    const selectable=items.filter(i=>!(i.akce&&!i.ref&&!i.text));
+    const allChecked=selectable.length>0&&selectable.every(i=>trkLogRowChecks[i.id]);
     const colTh=(key,label)=>`<th><label style="display:flex;align-items:center;gap:6px;cursor:pointer"><input type="checkbox" ${trkLogColChecks[key]?'checked':''} onchange="trkLogColChecks.${key}=this.checked;trkLogUpdateCopyBar()"> ${label}</label></th>`;
     let html=`<div class="attr-wrap"><table class="attr-tbl"><thead><tr>
       <th class="cc"><input type="checkbox" ${allChecked?'checked':''} onchange="trkLogToggleAll(this.checked)"></th>
-      ${colTh('projekt',t('colProject'))}${colTh('ticket',t('colTicket'))}${colTh('popis',t('colDesc'))}<th></th>
+      ${colTh('projekt',t('colProject'))}${colTh('akce',t('colParent'))}${colTh('ticket',t('colTicket'))}${colTh('popis',t('colDesc'))}<th></th>
     </tr></thead><tbody>`;
-    items.forEach(it=>{
-      if(it.id===trkLogEditId){
-        html+=`<tr class="data"><td class="cc"></td>
-          <td><select class="inp" id="tle-proj" style="width:100%">${trkLogProjOptions(it.proj)}</select></td>
-          <td><input class="inp" id="tle-ref" style="width:100%" value="${escH(it.ref||'')}" onkeydown="if(event.key==='Enter')trkLogSaveEdit('${it.id}')"></td>
-          <td><input class="inp" id="tle-text" style="width:100%" value="${escH(it.text||'')}" onkeydown="if(event.key==='Enter')trkLogSaveEdit('${it.id}')"></td>
-          <td style="white-space:nowrap;text-align:right"><button class="sbtn accent" onclick="trkLogSaveEdit('${it.id}')">${t('save')}</button> <button class="sbtn" onclick="trkLogEditId=null;trkRenderLog()">${t('cancel')}</button></td></tr>`;
-        return;
-      }
-      const proj=it.proj?getProj(it.proj):null;
-      const projCell=proj?`<span class="cdot" style="background:${proj.color}"></span>${escH(proj.name)}`:'<span style="color:var(--text5)">—</span>';
-      html+=`<tr class="data"><td class="cc"><input type="checkbox" ${trkLogRowChecks[it.id]?'checked':''} onchange="trkLogRowChecks['${it.id}']=this.checked;trkLogUpdateCopyBar();trkLogSyncAll()"></td>
-        <td style="font-size:12px">${projCell}</td>
-        <td>${it.ref?`<span class="trk-log-ref">${escH(it.ref)}</span>`:'<span style="color:var(--text5)">—</span>'}</td>
-        <td style="word-break:break-word">${escH(it.text||'')}</td>
-        <td style="white-space:nowrap;text-align:right"><button class="sbtn" style="padding:5px 8px" onclick="trkLogEditId='${it.id}';trkRenderLog()">${PENCIL_SVG}</button> <button class="del-btn" onclick="trkLogDelete('${it.id}')">×</button></td></tr>`;
+    trkLogBlocks.forEach((b,bi)=>{
+      if(b.type==='row'){html+=trkLogRowHtml(b.item,false);return;}
+      const col=b.proj?getProj(b.proj).color:'#6a6660';
+      const title=[b.proj,b.akce].filter(Boolean).join(' - ');
+      const del=b.header?` <button class="del-btn" onclick="trkLogDelete('${b.header.id}')">×</button>`:'';
+      html+=`<tr class="grp"><td class="cc"></td><td colspan="4"><span class="cdot" style="background:${col}"></span><strong>${escH(title)}</strong> <span style="color:var(--text5);font-weight:400">(${b.items.length})</span></td><td style="white-space:nowrap;text-align:right"><button class="sbtn" style="padding:3px 8px;text-transform:none" title="${escH(t('logAddBtn'))}" onclick="trkLogFillGroup(${bi})">＋</button>${del}</td></tr>`;
+      b.items.forEach(it=>{html+=trkLogRowHtml(it,true);});
     });
     html+='</tbody></table></div>';
     list.innerHTML=html;
@@ -1090,87 +1144,88 @@ function trkRenderLog(){
   document.getElementById('trk-log-copybar').style.display=items.length?'':'none';
   trkLogUpdateCopyBar();
 }
-function trkLogToggleAll(ch){(S.trkLog[trkDate]||[]).forEach(i=>trkLogRowChecks[i.id]=ch);trkRenderLog();}
-function trkLogSyncAll(){const items=S.trkLog[trkDate]||[];const cb=document.querySelector('#trk-log-list thead input[type=checkbox]');if(cb)cb.checked=items.length>0&&items.every(i=>trkLogRowChecks[i.id]);}
+function trkLogFillGroup(bi){
+  const b=trkLogBlocks[bi];if(!b||b.type!=='group')return;
+  document.getElementById('trk-log-proj').value=b.proj;
+  const as=document.getElementById('trk-log-akce');as.innerHTML=trkLogAkceOptions(b.akce);as.value=b.akce;
+  document.getElementById('trk-log-ref').focus();
+}
+function trkLogToggleAll(ch){(S.trkLog[trkDate]||[]).forEach(i=>{if(!(i.akce&&!i.ref&&!i.text))trkLogRowChecks[i.id]=ch;});trkRenderLog();}
+function trkLogSyncAll(){const items=(S.trkLog[trkDate]||[]).filter(i=>!(i.akce&&!i.ref&&!i.text));const cb=document.querySelector('#trk-log-list thead input[type=checkbox]');if(cb)cb.checked=items.length>0&&items.every(i=>trkLogRowChecks[i.id]);}
 function trkLogUpdateCopyBar(){
   const items=S.trkLog[trkDate]||[],sel=items.filter(i=>trkLogRowChecks[i.id]);
-  const cols=Object.entries(trkLogColChecks).filter(([,v])=>v).map(([k])=>({projekt:t('colProject'),ticket:t('colTicket'),popis:t('colDesc')})[k]);
+  const names={projekt:t('colProject'),akce:t('colParent'),ticket:t('colTicket'),popis:t('colDesc')};
+  const cols=Object.entries(trkLogColChecks).filter(([,v])=>v).map(([k])=>names[k]);
   const parts=[];if(sel.length)parts.push(`${sel.length} ${t('logCountTxt').toLowerCase()}`);if(cols.length)parts.push((currentLang==='en'?'columns: ':'sloupce: ')+cols.join(', '));
   document.getElementById('trk-log-count').textContent=parts.length?parts.join(' · '):t('checkRowsOrCols');
 }
-function trkLogPickDef(sel){
-  const d=(S.trkLogDefs||[]).find(x=>x.id===sel.value);if(!d)return;
-  document.getElementById('trk-log-proj').value=d.proj||'';
-  document.getElementById('trk-log-ref').value=d.ref||'';
-  const ti=document.getElementById('trk-log-text');ti.value=d.text||'';
-  sel.value='';ti.focus();
-}
-function openTrkDefsModal(){
-  document.getElementById('trk-defs-modal-body').innerHTML=`<div class="modal-title">${t('logDefs')}</div>
-    <div id="trk-defs-list" style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px;max-height:260px;overflow-y:auto"></div>
-    <div class="row">
-      <select class="inp" id="trk-def-proj" style="min-width:130px">${trkLogProjOptions('')}</select>
-      <input class="inp" id="trk-def-ref" style="width:120px" placeholder="${escH(t('logRefPh'))}" onkeydown="if(event.key==='Enter')trkDefAdd()">
-      <input class="inp" id="trk-def-text" style="flex:1;min-width:150px" placeholder="${escH(t('logDefTextPh'))}" onkeydown="if(event.key==='Enter')trkDefAdd()">
-      <button class="sbtn accent" onclick="trkDefAdd()">${t('logAddBtn')}</button>
-    </div>
-    <div class="modal-footer"><button class="sbtn" onclick="closeTrkDefsModal()">${t('cancel')}</button></div>`;
-  trkRenderDefsList();
-  document.getElementById('trk-defs-modal-ov').classList.add('open');
-}
-function closeTrkDefsModal(){document.getElementById('trk-defs-modal-ov').classList.remove('open');trkRenderLog();}
-function trkRenderDefsList(){
-  const defs=S.trkLogDefs||[];
-  document.getElementById('trk-defs-list').innerHTML=defs.length?defs.map(d=>{
-    const proj=d.proj?getProj(d.proj):null;
-    const badge=proj?`<span class="todo-proj-badge" style="color:${proj.color};border-color:${proj.color};background:${proj.color}18">${escH(proj.name)}</span>`:'';
-    return `<div class="cal-preset-row">${badge}${d.ref?`<span class="trk-log-ref">${escH(d.ref)}</span>`:''}<span class="cal-preset-text" style="color:var(--text)">${escH(d.text||'')}</span><button class="del-btn" onclick="trkDefDelete('${d.id}')">×</button></div>`;
-  }).join(''):`<div class="empty-state" style="padding:10px 0">${t('logDefNone')}</div>`;
-}
-function trkDefAdd(){
-  const proj=document.getElementById('trk-def-proj').value,refI=document.getElementById('trk-def-ref'),textI=document.getElementById('trk-def-text');
-  const ref=refI.value.trim(),text=textI.value.trim();
-  if(!ref&&!text)return;
-  if(!S.trkLogDefs)S.trkLogDefs=[];
-  S.trkLogDefs.push({id:uid(),proj,ref,text});
-  refI.value='';textI.value='';saveS();trkRenderDefsList();refI.focus();
-}
-function trkDefDelete(id){S.trkLogDefs=(S.trkLogDefs||[]).filter(d=>d.id!==id);saveS();trkRenderDefsList();}
 function trkLogAdd(){
-  const proj=document.getElementById('trk-log-proj').value;
+  const proj=document.getElementById('trk-log-proj').value,akce=document.getElementById('trk-log-akce').value;
   const refI=document.getElementById('trk-log-ref'),textI=document.getElementById('trk-log-text');
   const ref=refI.value.trim(),text=textI.value.trim();
-  if(!ref&&!text)return;
-  trkLogItems().push({id:uid(),proj,ref,text});
+  if(!ref&&!text){
+    // nadúkol only (project + action, no ticket): creates a group header, never a duplicate
+    if(!akce)return;
+    const key=proj+'|'+akce;
+    if(!trkLogItems().some(x=>trkLogKey(x)===key)){
+      trkLogItems().push({id:uid(),proj,akce,ref:'',text:''});
+      saveS();trkRenderLog();
+    }
+    refI.focus();
+    return;
+  }
+  trkLogItems().push({id:uid(),proj,akce,ref,text});
   refI.value='';textI.value='';
   saveS();trkRenderLog();
   refI.focus();
 }
 function trkLogSaveEdit(id){
-  const it=trkLogItems().find(x=>x.id===id);if(!it)return;
+  const items=trkLogItems(),it=items.find(x=>x.id===id);if(!it)return;
   it.proj=document.getElementById('tle-proj').value;
+  it.akce=document.getElementById('tle-akce').value;
   it.ref=document.getElementById('tle-ref').value.trim();
   it.text=document.getElementById('tle-text').value.trim();
+  if(!it.akce&&!it.ref&&!it.text)S.trkLog[trkDate]=items.filter(x=>x.id!==id);
   trkLogEditId=null;saveS();trkRenderLog();
+}
+function trkLogCopy(){
+  const items=S.trkLog[trkDate]||[];
+  const order=['projekt','akce','ticket','popis'];
+  const cols=order.filter(k=>trkLogColChecks[k]);
+  const sel=items.filter(i=>trkLogRowChecks[i.id]);
+  const lines=[];
+  if(!sel.length&&!cols.length){
+    // default: "project - parent task" header, below it "ticket - description" lines; entries without parent as before
+    trkLogGroups(items).forEach(b=>{
+      if(b.type==='row'){const l=[b.item.proj,b.item.ref,b.item.text].filter(Boolean).join(' - ');if(l)lines.push(l);return;}
+      lines.push([b.proj,b.akce].filter(Boolean).join(' - '));
+      b.items.forEach(it=>{const l=[it.ref,it.text].filter(Boolean).join(' - ');if(l)lines.push(l);});
+    });
+  }else{
+    const useCols=cols.length?cols:order;
+    const rows=(sel.length?sel:items.filter(i=>!(i.akce&&!i.ref&&!i.text)));
+    rows.forEach(it=>{const p=[];if(useCols.includes('projekt'))p.push(it.proj);if(useCols.includes('akce'))p.push(it.akce);if(useCols.includes('ticket'))p.push(it.ref);if(useCols.includes('popis'))p.push(it.text);const l=p.filter(Boolean).join(' - ');if(l)lines.push(l);});
+  }
+  if(!lines.length)return;
+  copyText(lines.join('\n'),'trk-log-copy-btn');
+}
+function trkLogProjOptions(sel){
+  return `<option value="">${t('noProject')}</option>`+S.projDefs.map(p=>`<option value="${escH(p.name)}"${p.name===sel?' selected':''}>${escH(p.name)}</option>`).join('');
 }
 function trkLogDelete(id){
   S.trkLog[trkDate]=trkLogItems().filter(x=>x.id!==id);
   saveS();trkRenderLog();
 }
-function trkLogCopy(){
-  const items=S.trkLog[trkDate]||[];
-  const cols=['projekt','ticket','popis'].filter(k=>trkLogColChecks[k]);
-  const sel=items.filter(i=>trkLogRowChecks[i.id]);
-  const rows=sel.length?sel:items;
-  const useCols=cols.length?cols:['projekt','ticket','popis'];
-  const lines=rows.map(it=>{const p=[];if(useCols.includes('projekt'))p.push(it.proj);if(useCols.includes('ticket'))p.push(it.ref);if(useCols.includes('popis'))p.push(it.text);return p.filter(Boolean).join('-');}).filter(Boolean);
-  if(!lines.length)return;
-  copyText(lines.join('\n'),'trk-log-copy-btn');
-}
 function trkRenderAttendance(){
   const att=S.attendance[trkDate]||{};
-  document.getElementById('trk-checkin-inp').value=att.checkIn||'';
-  document.getElementById('trk-checkout-inp').value=att.checkOut||'';
+  const ciI=document.getElementById('trk-checkin-inp');
+  ciI.value=att.checkIn||'';
+  ciI.classList.toggle('att-auto',!!att.inSrc);
+  ciI.title=att.inSrc?t('attAutoTip'):'';
+  const coI=document.getElementById('trk-checkout-inp');
+  coI.value=att.checkOut||'';
+  coI.classList.toggle('att-auto',!!att.outSrc);
+  coI.title=att.outSrc?t('attAutoTip'):'';
   const totalEl=document.getElementById('trk-attendance-total');
   const total=attendanceTotalStr(att);
   if(total){ totalEl.textContent=t('total')+': '+total; totalEl.style.display=''; }
@@ -1186,14 +1241,66 @@ function trkPunch(type){
   const val=pad(now.getHours())+':'+pad(now.getMinutes());
   trkSetAttendance(type,val);
 }
+function attApply(day,type,val,src){
+  const a=S.attendance[day]||(S.attendance[day]={});
+  const sk=type==='checkIn'?'inSrc':'outSrc';
+  if(!val){delete a[type];delete a[sk];}
+  else{
+    a[type]=val;
+    if(src)a[sk]=src;else delete a[sk]; // manual entry is never overwritten automatically
+    if(type==='checkIn'&&!a.checkOut){
+      const pre=(S.attCfg&&S.attCfg.presetOut)||'';
+      if(pre&&pre>val){a.checkOut=pre;a.outSrc='preset';}
+    }
+  }
+  if(!Object.keys(a).length)delete S.attendance[day];
+}
 function trkSetAttendance(type,val){
-  if(!val)return;
-  if(!S.attendance[trkDate])S.attendance[trkDate]={};
-  S.attendance[trkDate][type]=val;
+  if(!val&&!(S.attendance[trkDate]&&S.attendance[trkDate][type]))return;
+  attApply(trkDate,type,val,null);
   trkRenderAttendance();
   calSyncAttendanceNote(trkDate);
   saveS();
 }
+function attIsWorkday(day){
+  if(S.calDayType[day])return false;
+  const dow=new Date(day+'T00:00:00').getDay();
+  return dow>=1&&dow<=5;
+}
+function attNowHM(){const n=new Date();return pad(n.getHours())+':'+pad(n.getMinutes());}
+function attAutoStart(){
+  if(!S.attCfg||!S.attCfg.autoPunch)return;
+  const day=todayStr();
+  if(!attIsWorkday(day))return;
+  const a=S.attendance[day];
+  if(a&&a.checkIn)return;
+  attApply(day,'checkIn',attNowHM(),'start');
+  calSyncAttendanceNote(day);
+  saveS();
+}
+function spAttRender(){
+  const c=attCfgNormalize(S.attCfg);
+  const pi=document.getElementById('sp-att-preset'),ci=document.getElementById('sp-att-close'),hi=document.getElementById('sp-att-hours');
+  if(pi)pi.value=c.presetOut;if(ci)ci.checked=c.autoPunch;if(hi)hi.value=c.dayHours;
+}
+function spAttSave(){
+  S.attCfg=attCfgNormalize({presetOut:document.getElementById('sp-att-preset').value||'',autoPunch:document.getElementById('sp-att-close').checked,dayHours:document.getElementById('sp-att-hours').value});
+  saveS();
+}
+function spAttClearPreset(){document.getElementById('sp-att-preset').value='';spAttSave();}
+function attOnClose(){
+  if(!S.attCfg||!S.attCfg.autoPunch)return;
+  const att=S.attendance[todayStr()];
+  if(!att||!att.checkIn)return;                 // no check-in today -> nothing to close
+  if(att.checkOut&&!att.outSrc)return;          // manual departure is never overwritten
+  const val=attNowHM();
+  if(val<=att.checkIn)return;
+  att.checkOut=val;att.outSrc='close';
+  calSyncAttendanceNote(todayStr());
+  saveS();
+}
+window.addEventListener('beforeunload',attOnClose);
+window.addEventListener('pagehide',attOnClose);
 function calSyncAttendanceNote(dateStr){
   const att=S.attendance[dateStr]||{};
   const marker='⏱ '+t('attendanceLine')+': ';
@@ -1389,16 +1496,16 @@ function renderTodoContent(){
   const addSec=document.createElement('div');addSec.className='section-card';
   addSec.innerHTML=`<div class="section-label">${t('addTask')}</div>
     <div class="row">
-    <input class="inp" id="todo-date-inp" type="date" style="min-width:140px" onclick="try{this.showPicker&&this.showPicker()}catch(e){}">
-    <select class="inp" id="todo-proj-inp" style="min-width:120px"><option value="">${t('selProject')}</option>${S.projDefs.map(p=>`<option value="${escH(p.name)}">${escH(p.name)}</option>`).join('')}</select>
-    <input class="inp" id="todo-desc-inp" placeholder="${t('taskDesc')}" style="flex:2;min-width:200px" onkeydown="if(event.key==='Enter')todoAdd()">
+    <input class="inp" id="todo-date-inp" type="date" style="min-width:140px" onchange="todoDraftSave()" onclick="try{this.showPicker&&this.showPicker()}catch(e){}">
+    <select class="inp" id="todo-proj-inp" style="min-width:120px" onchange="todoDraftSave()"><option value="">${t('selProject')}</option>${S.projDefs.map(p=>`<option value="${escH(p.name)}">${escH(p.name)}</option>`).join('')}</select>
+    <input class="inp" id="todo-desc-inp" placeholder="${t('taskDesc')}" style="flex:2;min-width:200px" oninput="todoDraftSave()" onkeydown="if(event.key==='Enter')todoAdd()">
     <button class="sbtn accent" onclick="todoAdd()">＋</button></div>`;
   cont.appendChild(addSec);
   const list=document.createElement('div');list.className='todo-list';
   if(!tab.items.length){list.innerHTML=`<div class="empty-state">${t('noTasks')}</div>`;}
   else{
     const sortedItems=[...tab.items].sort((a,b)=>{
-      if(a.done!==b.done) return a.done?1:-1;
+      if(!!a.done!==!!b.done) return a.done?1:-1;
       if(!!a.urgent!==!!b.urgent) return a.urgent?-1:1;
       const da=a.date||'9999-99-99',db=b.date||'9999-99-99';
       return da.localeCompare(db);
@@ -1442,24 +1549,27 @@ function renderTodoContent(){
     });
   }
   cont.appendChild(list);
-  // Restore draft if available
-  if(S.todoDraft && S.todoDraft.desc){
-    const di=document.getElementById('todo-desc-inp');
-    const dti=document.getElementById('todo-date-inp');
-    const pi=document.getElementById('todo-proj-inp');
-    if(di) di.value=S.todoDraft.desc;
-    if(dti) dti.value=S.todoDraft.date||todayStr();
-    if(pi && S.todoDraft.proj){ pi.value=S.todoDraft.proj; }
-  } else {
-    document.getElementById('todo-date-inp').value=todayStr();
-  }
+  // Restore the unsent draft (survives any re-render of the task list)
+  const di=document.getElementById('todo-desc-inp'),dti=document.getElementById('todo-date-inp'),pi=document.getElementById('todo-proj-inp');
+  if(todoDraftLive){
+    if(di) di.value=todoDraftLive.desc||'';
+    if(dti) dti.value=todoDraftLive.date||todayStr();
+    if(pi&&todoDraftLive.proj) pi.value=todoDraftLive.proj;
+  } else if(dti){ dti.value=todayStr(); }
+}
+let todoDraftLive=null;
+function todoDraftSave(){
+  const di=document.getElementById('todo-desc-inp'),dti=document.getElementById('todo-date-inp'),pi=document.getElementById('todo-proj-inp');
+  if(!di)return;
+  todoDraftLive={desc:di.value,date:dti?dti.value:'',proj:pi?pi.value:''};
 }
 function todoAdd(){
   const desc=document.getElementById('todo-desc-inp').value.trim();if(!desc)return;
   const date=document.getElementById('todo-date-inp').value,proj=document.getElementById('todo-proj-inp').value;
   const tab=S.todoTabs.find(x=>x.id===todoActiveTab);if(!tab)return;
-  tab.items.push({id:uid(),desc,date,proj,done:false});saveS();renderTodoContent();
-  document.getElementById('todo-desc-inp').value='';S.todoDraft=null;
+  tab.items.push({id:uid(),desc,date,proj,done:false});saveS();
+  todoDraftLive=null;renderTodoContent();
+  document.getElementById('todo-desc-inp').focus();
 }
 const todoOpenPanels=new Set();
 function todoTogglePanel(id){
@@ -1498,7 +1608,7 @@ function todoToLog(tabId,itemId,btn){
   const day=todayStr();
   if(!S.trkLog[day])S.trkLog[day]=[];
   const txt=(item.desc||'').trim();
-  if(txt&&!S.trkLog[day].some(x=>!x.ref&&!x.proj&&x.text===txt)){
+  if(txt&&!S.trkLog[day].some(x=>!x.ref&&!x.proj&&!x.akce&&x.text===txt)){
     S.trkLog[day].push({id:uid(),proj:'',ref:'',text:txt});
     saveS();
   }
@@ -1903,7 +2013,7 @@ function dmImportJSON(event,tabId){
 
 
 /* SETTINGS */
-function openSettings(){spRenderAkce();spRenderProj();renderAboutSection();document.getElementById('settings-ov').classList.add('open');}
+function openSettings(){spAttRender();spRenderAkce();spRenderProj();renderAboutSection();document.getElementById('settings-ov').classList.add('open');}
 function closeSettings(){document.getElementById('settings-ov').classList.remove('open');}
 function spRenderAkce(){const el=document.getElementById('sp-akce-list');el.innerHTML='';S.akceDefs.forEach((n,i)=>{const r=document.createElement('div');r.className='sp-row';r.innerHTML=`<input class="sp-inp" value="${escH(n)}" oninput="S.akceDefs[${i}]=this.value;saveS();trkFillSelects()"><button class="del-btn" onclick="spDelAkce(${i})">×</button>`;el.appendChild(r);});}
 function spAddAkce(){const inp=document.getElementById('sp-akce-inp');const v=inp.value.trim();if(!v)return;S.akceDefs.push(v);inp.value='';saveS();spRenderAkce();trkFillSelects();}
@@ -1928,7 +2038,7 @@ function spSetColor(i,c){S.projDefs[i].color=c;saveS();spRenderProj();}
 
 /* EXPORT / IMPORT */
 function exportData(){const blob=new Blob([JSON.stringify(S,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='pracovni_nastroje_'+todayStr()+'.json';document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);}
-function importData(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{const d=JSON.parse(ev.target.result);if(d.akceDefs&&d.projDefs&&d.days){S=d;S.calEvents=S.calEvents||[];S.calNotes=S.calNotes||{};S.calPresets=S.calPresets||[];S.attendance=S.attendance||{};S.trkLog=S.trkLog||{};S.trkLogDefs=S.trkLogDefs||[];saveS();trkRenderDay();renderTodoTabs();renderNotesTabs();renderGridTabs();closeSettings();alert(t('importOk'));}else alert(t('importBadFormat'));}catch{alert(t('importError'));}};r.readAsText(f);e.target.value='';}
+function importData(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{const d=JSON.parse(ev.target.result);if(d.akceDefs&&d.projDefs&&d.days){S=d;S.calEvents=S.calEvents||[];S.calNotes=S.calNotes||{};S.calPresets=S.calPresets||[];S.attendance=S.attendance||{};S.trkLog=S.trkLog||{};S.attCfg=attCfgNormalize(S.attCfg);S.calDayType=S.calDayType||{};migrateTrkLog();saveS();trkRenderDay();renderTodoTabs();renderNotesTabs();renderGridTabs();closeSettings();alert(t('importOk'));}else alert(t('importBadFormat'));}catch{alert(t('importError'));}};r.readAsText(f);e.target.value='';}
 
 /* THEME */
 function toggleTheme(){
@@ -2177,6 +2287,61 @@ function checkAlarms(){
   if(dirty){ saveS(); if(document.getElementById('pane-alarm').classList.contains('active')) renderAlarmPage(); }
 }
 
+/* KALENDÁŘ – pracovní doba */
+const CAL_DAY_TYPES={vacation:{color:'#4a8fd4',key:'dayVacation'},sick:{color:'#d44a4a',key:'daySick'},holiday:{color:'#8fb04a',key:'dayHoliday'}};
+function fmtHM(min){min=Math.max(0,Math.round(min));return Math.floor(min/60)+':'+pad(min%60);}
+function attMinutes(att){return(att&&att.checkIn&&att.checkOut)?Math.round(trkCalcElapsed(att.checkIn,att.checkOut)/60):null;}
+function calDayInfo(ds){
+  const type=S.calDayType[ds]||'';
+  const norm=attIsWorkday(ds)?Math.round(attCfgNormalize(S.attCfg).dayHours*60):0;
+  const worked=attMinutes(S.attendance[ds]);
+  return{type,norm,worked,over:worked!=null?Math.max(0,worked-norm):0};
+}
+function calMonthSummary(y,m){
+  const r={worked:0,over:0,days:0,vacation:0,sick:0,holiday:0};
+  const n=new Date(y,m+1,0).getDate();
+  for(let d=1;d<=n;d++){
+    const i=calDayInfo(calDateStr(y,m,d));
+    if(i.type)r[i.type]++;
+    if(i.worked!=null&&i.worked>0){r.worked+=i.worked;r.over+=i.over;r.days++;}
+  }
+  return r;
+}
+function calSummaryHtml(y,m){
+  const s=calMonthSummary(y,m);
+  const tile=(val,lbl,cls)=>`<div class="cal-sum-item${cls?' '+cls:''}"><div class="cal-sum-val">${val}</div><div class="cal-sum-lbl">${lbl}</div></div>`;
+  return `<div class="cal-summary">${tile(fmtHM(s.worked),t('sumWorked'))}${tile((s.over?'+':'')+fmtHM(s.over),t('sumOvertime'),s.over?'over':'')}${tile(s.days,t('sumDays'))}${tile(s.vacation,t('sumVacation'))}${tile(s.sick,t('sumSick'))}${tile(s.holiday,t('sumHolidays'))}</div>`;
+}
+function calSetDayType(val){
+  if(!calDayModalDate)return;
+  if(val)S.calDayType[calDayModalDate]=val;else delete S.calDayType[calDayModalDate];
+  saveS();renderCalDayInfo();renderCalendar();
+}
+function renderCalDayInfo(){
+  const ds=calDayModalDate,i=calDayInfo(ds),a=S.attendance[ds]||{};
+  const sel=document.getElementById('cal-day-type');
+  sel.innerHTML=`<option value="">${t('dayNone')}</option>`+Object.keys(CAL_DAY_TYPES).map(k=>`<option value="${k}"${i.type===k?' selected':''}>${t(CAL_DAY_TYPES[k].key)}</option>`).join('');
+  const el=document.getElementById('cal-day-att');
+  if(i.worked!=null){
+    el.innerHTML=`${CHECKIN_SVG} <b>${a.checkIn}</b> → ${CHECKOUT_SVG} <b>${a.checkOut}</b> &nbsp;=&nbsp; <b>${fmtHM(i.worked)}</b>${i.over?` &nbsp;<span style="color:var(--accent)">(+${fmtHM(i.over)} ${t('calDayOver')})</span>`:''}`;
+    el.style.display='';
+  }else if(a.checkIn||a.checkOut){
+    el.innerHTML=`${CHECKIN_SVG} <b>${a.checkIn||'--:--'}</b> → ${CHECKOUT_SVG} <b>${a.checkOut||'--:--'}</b>`;el.style.display='';
+  }else el.style.display='none';
+}
+function czHolidays(y){
+  const a=y%19,b=Math.floor(y/100),c=y%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7,mm=Math.floor((a+11*h+22*l)/451),mo=Math.floor((h+l-7*mm+114)/31),da=((h+l-7*mm+114)%31)+1;
+  const easter=new Date(y,mo-1,da),add=n=>{const x=new Date(easter);x.setDate(x.getDate()+n);return localDateStr(x);};
+  const list=[[1,1],[5,1],[5,8],[7,5],[7,6],[9,28],[10,28],[11,17],[12,24],[12,25],[12,26]].map(([m,dd])=>calDateStr(y,m-1,dd));
+  list.push(add(1));            // Easter Monday
+  if(y>=2016)list.push(add(-2)); // Good Friday (public holiday since 2016)
+  return list;
+}
+function calFillHolidays(){
+  const y=calViewDate.getFullYear();
+  czHolidays(y).forEach(ds=>{if(!S.calDayType[ds])S.calDayType[ds]='holiday';});
+  saveS();renderCalendar();
+}
 /* KALENDÁŘ */
 let calViewDate=new Date(); calViewDate.setDate(1);
 let calDayModalDate=null;
@@ -2237,10 +2402,13 @@ function renderCalendar(){
     const isToday=dateStr===todayS;
     const evtHtml=evts.slice(0,2).map(ev=>{const c=ev.color||SWATCHES[0];return `<div class="cal-day-evt" style="background:${c}22;color:${c}">${escH(ev.title)}</div>`;}).join('');
     const moreHtml=evts.length>2?`<div class="cal-day-more">+${evts.length-2}</div>`:'';
+    const di=calDayInfo(dateStr);
+    const typeChip=di.type?`<div class="cal-day-evt" style="background:${CAL_DAY_TYPES[di.type].color}22;color:${CAL_DAY_TYPES[di.type].color}">${t(CAL_DAY_TYPES[di.type].key)}</div>`:'';
+    const workedChip=di.worked!=null?`<div class="cal-day-worked">${TRACKER_SVG} ${fmtHM(di.worked)}${di.over?` <span class="over">+${fmtHM(di.over)}</span>`:''}</div>`:'';
     const notePreviewHtml=noteTxt?`<div class="cal-day-note-preview">${NOTE_SVG} ${escH(noteTxt.slice(0,22))}${noteTxt.length>22?'…':''}</div>`:'';
     cellsHtml+=`<div class="cal-day${otherMonth?' other-month':''}${isToday?' today':''}" onclick="openCalDayModal('${dateStr}')">
       <div class="cal-day-flags"><span class="cal-day-num">${dNum}</span></div>
-      ${evtHtml}${moreHtml}${notePreviewHtml}
+      ${typeChip}${workedChip}${evtHtml}${moreHtml}${notePreviewHtml}
     </div>`;
   }
 
@@ -2254,9 +2422,11 @@ function renderCalendar(){
       <button class="sbtn" onclick="calGoToday()">${t('calToday')}</button>
       <button class="sbtn accent" onclick="openCalEventModal(null,todayStr())">${CAL_SVG} ${t('calAddEvent')}</button>
       <button class="sbtn" onclick="openCalPresetsModal()">${GEAR_SVG} ${t('calManagePresets')}</button>
+      <button class="sbtn" onclick="calFillHolidays()">${CAL_SVG} ${t('calFillHolidays')}</button>
     </div>
     <div class="cal-weekdays">${weekdayNames.map(w=>`<div class="cal-weekday">${w}</div>`).join('')}</div>
     <div class="cal-grid">${cellsHtml}</div>
+    ${calSummaryHtml(y,m)}
   `;
 }
 function calChangeMonth(delta){ calViewDate.setMonth(calViewDate.getMonth()+delta); renderCalendar(); }
@@ -2289,6 +2459,7 @@ function renderCalDayModal(){
       <span style="color:var(--text4);display:inline-flex">${PENCIL_SVG}</span>
     </div>`;}).join(''):`<div class="empty-state" style="padding:10px 0">${t('calNoEvents')}</div>`;
   document.getElementById('cal-day-note').value=S.calNotes[dateStr]||'';
+  renderCalDayInfo();
   calRenderPresetSelect();
 }
 function calRenderPresetSelect(){
@@ -2411,6 +2582,7 @@ const _th=localStorage.getItem('pnt_theme');
 if(_th){document.documentElement.setAttribute('data-theme',_th);document.getElementById('theme-btn').innerHTML=_th==='light'?SUN_SVG:MOON_SVG;}
 document.documentElement.lang = currentLang;
 renderStaticLabels();
+attAutoStart();
 trkDate=todayStr(); trkRenderDay();
 ensureTodoTab(); todoActiveTab=S.todoTabs[0].id; renderTodoTabs();
 ensureNotesTab(); notesActiveTab=S.notesTabs[0].id; renderNotesTabs();
