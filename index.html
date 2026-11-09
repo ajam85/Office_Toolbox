@@ -348,9 +348,9 @@ input[type=checkbox]{width:15px;height:15px;accent-color:var(--accent);cursor:po
       <span class="date-label" id="trk-date-label"></span>
       <div class="attendance-wrap">
         <button class="sbtn" onclick="trkPunch('checkIn')" id="trk-checkin-btn"></button>
-        <input type="time" class="mc-time-inp" id="trk-checkin-inp" onblur="trkSetAttendance('checkIn',this.value)" onkeydown="if(event.key==='Enter')this.blur()" onclick="try{this.showPicker&&this.showPicker()}catch(e){}">
+        <input type="time" class="mc-time-inp" id="trk-checkin-inp" onblur="trkSetAttendance('checkIn',this.value)" onkeydown="if(event.key==='Enter')this.blur()">
         <button class="sbtn" onclick="trkPunch('checkOut')" id="trk-checkout-btn"></button>
-        <input type="time" class="mc-time-inp" id="trk-checkout-inp" onblur="trkSetAttendance('checkOut',this.value)" onkeydown="if(event.key==='Enter')this.blur()" onclick="try{this.showPicker&&this.showPicker()}catch(e){}">
+        <input type="time" class="mc-time-inp" id="trk-checkout-inp" onblur="trkSetAttendance('checkOut',this.value)" onkeydown="if(event.key==='Enter')this.blur()">
         <span class="attendance-total" id="trk-attendance-total" style="display:none"></span>
       </div>
     </div>
@@ -453,7 +453,7 @@ input[type=checkbox]{width:15px;height:15px;accent-color:var(--accent);cursor:po
         <div class="sp-sec-title" id="lbl-attSettings"></div>
         <div style="font-size:12px;color:var(--text3);margin-bottom:6px" id="lbl-attPresetOut"></div>
         <div class="row" style="gap:8px;margin-bottom:4px">
-          <input type="time" class="inp" id="sp-att-preset" onchange="spAttSave()" onclick="try{this.showPicker&&this.showPicker()}catch(e){}">
+          <input type="time" class="inp" id="sp-att-preset" onchange="spAttSave()">
           <button class="sbtn" onclick="spAttClearPreset()" id="sp-att-clear">×</button>
         </div>
         <div style="font-size:11px;color:var(--text4);margin-bottom:12px" id="lbl-attPresetHint"></div>
@@ -504,7 +504,7 @@ input[type=checkbox]{width:15px;height:15px;accent-color:var(--accent);cursor:po
         <span id="lbl-alarmEnable"></span>
       </label>
       <div id="tm-alarm-time-row" style="display:none;align-items:center;gap:8px;">
-        <input class="modal-inp" id="tm-alarm-time" type="time" style="width:auto;" onclick="try{this.showPicker&&this.showPicker()}catch(e){}">
+        <input class="modal-inp" id="tm-alarm-time" type="time" style="width:auto;">
       </div>
     </div>
     <div class="modal-footer"><button class="sbtn" onclick="closeTodoModal()" id="tm-cancel-btn"></button><button class="sbtn accent" onclick="saveTodoModal()" id="tm-save-btn"></button></div>
@@ -516,7 +516,7 @@ input[type=checkbox]{width:15px;height:15px;accent-color:var(--accent);cursor:po
   <div class="modal">
     <div class="modal-title" id="lbl-editAlarm"></div>
     <div class="modal-row"><div class="modal-label" id="lbl-alarmLabel"></div><input class="modal-inp" id="am-desc" placeholder="…"></div>
-    <div class="modal-row"><div class="modal-label" id="lbl-alarmTimeLabel"></div><input class="modal-inp" id="am-time" type="time" style="width:auto;" onclick="try{this.showPicker&&this.showPicker()}catch(e){}"></div>
+    <div class="modal-row"><div class="modal-label" id="lbl-alarmTimeLabel"></div><input class="modal-inp" id="am-time" type="time" style="width:auto;"></div>
     <div class="modal-row">
       <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
         <input type="checkbox" id="am-repeat"> <span id="lbl-alarmRepeat2"></span>
@@ -807,10 +807,13 @@ function renderStaticLabels(){
   renderAboutSection();
 }
 
-const APP_VERSION = '1.14.0';
+const APP_VERSION = '1.15.1';
 const APP_BUILD_DATE = '2026-10-27';
 const AI_MODEL_INFO = 'Claude (Anthropic)';
 const CHANGELOG = [
+  { version: '1.15.1', notes: { cs: 'Ukládání: aplikace po každé změně hned vynutí zápis dat na disk (nové preload.js). Chrání před ztrátou posledních změn, když se aplikace ukončí násilně (zavření terminálu, Správce úloh, pád).', en: 'Saving: after every change the app now forces the data to be written to disk right away (new preload.js). Protects the latest changes when the app is terminated abruptly (closing the terminal, Task Manager, crash).' } },
+  { version: '1.15.0', notes: { cs: 'Ukolovník: poznámka a checklist (podúkoly) jsou u úkolu vždy vidět, pokud mají obsah – ikony slouží k přidání nového obsahu a přesunu kurzoru. Řazení: urgentní úkoly nahoře, hned pod nimi od nejnovějšího (podle data, při shodě naposledy přidaný první), splněné úkoly dole.', en: 'To-Do: a task note and checklist (sub-tasks) are always visible when they have content – the icons are for adding new content and moving the cursor there. Sorting: urgent tasks on top, right below them newest first (by date, same date: most recently added first), completed tasks at the bottom.' } },
+  { version: '1.14.1', notes: { cs: 'Oprava úpravy času: pole času se dají znovu psát z klávesnice (kliknutím na hodiny/minuty a zadáním číslic). Dřív klik otevřel výběr s rolováním, který psaní blokoval; výběr zůstává dostupný přes ikonu hodin v poli.', en: 'Time editing fix: time fields can be typed into again (click the hours/minutes and enter digits). Previously a click opened the scroll picker, which blocked typing; the picker is still available via the clock icon in the field.' } },
   { version: '1.14.0', notes: { cs: 'Oprava: krok na předchozí den přeskakoval o dva dny (a krok dopředu se zasekl) – datumy se nově počítají v místním čase; stejná chyba způsobovala, že „dnes“ bylo po půlnoci ještě včerejšek. Docházka: jedno zaškrtávací pole zapíše příchod při spuštění a odchod při zavření aplikace (ručně zadané časy se nepřepisují). Kalendář: typ dne (dovolená / nemoc / státní svátek, tlačítko pro státní svátky ČR), v dnech odpracovaná doba a přesčas, pod kalendářem měsíční souhrn (odpracováno, přesčas, odpracované dny, dovolená, nemoc, svátky). Pracovní doba v hodinách se nastavuje v Nastavení.', en: 'Fix: stepping to the previous day skipped two days (and stepping forward got stuck) – dates are now computed in local time; the same bug made "today" still be yesterday after midnight. Attendance: one checkbox records check-in on app start and check-out on close (manual times are never overwritten). Calendar: day type (vacation / sick / public holiday, button for Czech public holidays), worked time and overtime per day, monthly summary below the calendar (time worked, overtime, days worked, vacation, sick, holidays). Working hours per day are set in Settings.' } },
   { version: '1.13.0', notes: { cs: 'Píchačka: v Nastavení lze zadat předdefinovaný čas odchodu (předvyplní se po zaznamenání Příchodu) a zapnout automatický zápis odchodu při zavření aplikace. Automaticky doplněný odchod je zobrazen kurzívou a ručně zadaný čas se nikdy nepřepisuje. Prázdným polem lze čas Příchodu/Odchodu smazat.', en: 'Punch clock: Settings now has a predefined check-out time (pre-filled once Check-in is recorded) and an option to record check-out automatically when the app is closed. An automatically filled check-out is shown in italics and a manually entered time is never overwritten. Clearing the field removes the Check-in/Check-out time.' } },
   { version: '1.12.0', notes: { cs: 'Záznamy dne – Nadúkol: nový výběr Nadúkol (akce z Trackeru) vedle projektu. Nadúkol = projekt + akce; lze přidat samotný (vznikne hlavička skupiny, bez duplicit). Záznamy s ticketem a popisem se řadí pod hlavičku odsazené. Po přidání zůstane vybraný projekt a nadúkol. Kopírování: „Projekt - Nadúkol“ a pod ním řádky „ticket - popis“, záznamy bez nadúkolu jako dřív. Starší záznamy se chovají beze změny.', en: 'Daily log – Parent task: new Parent task select (Tracker action) next to the project. Parent task = project + action; it can be added on its own (creates a group header, no duplicates). Entries with ticket and description are listed indented under the header. Project and parent task stay selected after adding. Copy: "Project - Parent task" with "ticket - description" lines below; entries without a parent task as before. Older entries behave unchanged.' } },
@@ -926,7 +929,7 @@ function loadS(){
     migrateTrkLog();
   }catch(e){}
 }
-function saveS(){localStorage.setItem('pnt_v4',JSON.stringify(S));showAutosaveIndicator();}
+function saveS(){localStorage.setItem('pnt_v4',JSON.stringify(S));showAutosaveIndicator();if(window.otFlush){clearTimeout(window.__otFlushT);window.__otFlushT=setTimeout(window.otFlush,150);}}
 
 let _autosaveInd=null;
 function showAutosaveIndicator(){
@@ -1373,9 +1376,9 @@ function trkCardHTML(m){
   const stopVal=m.stoppedAt||'';
   const timeRange=`
     <div class="mc-timerange">
-      <input type="time" class="mc-time-inp" value="${startVal}" title="${currentLang==='en'?'Start time':'Čas začátku'}" onblur="trkSetStartTime('${m.id}',this.value)" onkeydown="if(event.key==='Enter')this.blur()" onclick="try{this.showPicker&&this.showPicker()}catch(e){}" ${m.running?'disabled':''}>
+      <input type="time" class="mc-time-inp" value="${startVal}" title="${currentLang==='en'?'Start time':'Čas začátku'}" onblur="trkSetStartTime('${m.id}',this.value)" onkeydown="if(event.key==='Enter')this.blur()" ${m.running?'disabled':''}>
       <span style="color:var(--text5)">→</span>
-      <input type="time" class="mc-time-inp" value="${stopVal}" title="${currentLang==='en'?'End time':'Čas konce'}" onblur="trkSetStopTime('${m.id}',this.value)" onkeydown="if(event.key==='Enter')this.blur()" onclick="try{this.showPicker&&this.showPicker()}catch(e){}" ${m.running?'disabled':''}>
+      <input type="time" class="mc-time-inp" value="${stopVal}" title="${currentLang==='en'?'End time':'Čas konce'}" onblur="trkSetStopTime('${m.id}',this.value)" onkeydown="if(event.key==='Enter')this.blur()" ${m.running?'disabled':''}>
     </div>`;
   return `<div class="mc-head">${dot}<span class="mc-name">${escH(m.defName)}</span>${badge}<button class="del-btn" onclick="trkRemove('${m.id}')">×</button></div>
   <div class="mc-body">
@@ -1504,18 +1507,22 @@ function renderTodoContent(){
   const list=document.createElement('div');list.className='todo-list';
   if(!tab.items.length){list.innerHTML=`<div class="empty-state">${t('noTasks')}</div>`;}
   else{
-    const sortedItems=[...tab.items].sort((a,b)=>{
+    // order: active first (urgent on top), then newest date first, same date -> most recently added first; done tasks last
+    const sortedItems=tab.items.map((it,i)=>({it,i})).sort((x,y)=>{
+      const a=x.it,b=y.it;
       if(!!a.done!==!!b.done) return a.done?1:-1;
       if(!!a.urgent!==!!b.urgent) return a.urgent?-1:1;
-      const da=a.date||'9999-99-99',db=b.date||'9999-99-99';
-      return da.localeCompare(db);
-    });
+      const da=a.date||'',db=b.date||'';
+      if(da!==db){ if(!da) return 1; if(!db) return -1; return da<db?1:-1; }
+      return y.i-x.i;
+    }).map(x=>x.it);
     sortedItems.forEach(item=>{
       const proj=item.proj?getProj(item.proj):null;
       const badge=proj?`<span class="todo-proj-badge" style="color:${proj.color};border-color:${proj.color};background:${proj.color}18">${escH(proj.name)}</span>`:'';
       const alarmBadge=item.alarmEnabled&&item.alarmTime?`<span class="todo-date" title="${t('alarmTime')}">${ALARM_SVG} ${escH(item.alarmTime)}</span>`:'';
       const urgentBadge=item.urgent?`<span class="todo-urgent-badge">🔥 ${t('urgent')}</span>`:'';
       const noteId='note-'+item.id, clId='cl-'+item.id;
+      const hasNote=!!(item.note&&item.note.trim()), hasCl=!!(item.checklist&&item.checklist.length);
       const clItems=item.checklist||[];
       const clDone=clItems.filter(c=>c.done).length;
       const clCount=clItems.length?` (${clDone}/${clItems.length})`:'';
@@ -1528,10 +1535,10 @@ function renderTodoContent(){
       row.innerHTML=`<input type="checkbox" class="todo-cb" ${item.done?'checked':''} onchange="todoToggle('${tab.id}','${item.id}',this.checked)">
         <div class="todo-body"><div class="todo-desc${item.done?' done':''}">${escH(item.desc)}</div>
         <div class="todo-meta">${item.date?`<span class="todo-date">${CAL_SVG} ${item.date}</span>`:''} ${alarmBadge} ${badge} ${urgentBadge}</div>
-        <div class="todo-note-area${todoOpenPanels.has(noteId)?' open':''}" id="${noteId}">
-          <textarea class="todo-note-inp" placeholder="${t('notePlaceholder')}" onblur="todoSaveNote('${tab.id}','${item.id}',this.value)">${escH(item.note||'')}</textarea>
+        <div class="todo-note-area${(hasNote||todoOpenPanels.has(noteId))?' open':''}" id="${noteId}" data-has="${hasNote?1:0}">
+          <textarea class="todo-note-inp" placeholder="${t('notePlaceholder')}" oninput="todoAutoSize(this)" onblur="todoSaveNote('${tab.id}','${item.id}',this.value)">${escH(item.note||'')}</textarea>
         </div>
-        <div class="todo-checklist-area${todoOpenPanels.has(clId)?' open':''}" id="${clId}">
+        <div class="todo-checklist-area${(hasCl||todoOpenPanels.has(clId))?' open':''}" id="${clId}" data-has="${hasCl?1:0}">
           ${clHtml}
           <div class="todo-checklist-add">
             <input class="inp todo-checklist-inp" id="cl-inp-${item.id}" placeholder="${t('checklistAddPlaceholder')}" onkeydown="if(event.key==='Enter')todoChecklistAdd('${tab.id}','${item.id}')">
@@ -1546,6 +1553,7 @@ function renderTodoContent(){
         <button class="sbtn" style="padding:5px 8px" onclick="openTodoModal('${tab.id}','${item.id}')">${PENCIL_SVG}</button>
         <button class="del-btn" onclick="todoDelete('${tab.id}','${item.id}')">×</button>`;
       list.appendChild(row);
+      todoAutoSize(row.querySelector('.todo-note-inp'));
     });
   }
   cont.appendChild(list);
@@ -1572,9 +1580,18 @@ function todoAdd(){
   document.getElementById('todo-desc-inp').focus();
 }
 const todoOpenPanels=new Set();
+function todoAutoSize(ta){
+  if(!ta||!ta.offsetParent)return; // hidden panels have no layout height
+  ta.style.height='auto';
+  ta.style.height=Math.min(ta.scrollHeight+2,220)+'px';
+}
 function todoTogglePanel(id){
+  const el=document.getElementById(id);if(!el)return;
+  // a note / checklist that has content is always visible: the icon then just moves the cursor into it
+  if(el.dataset.has==='1'){const f=el.querySelector('textarea,input.todo-checklist-inp');if(f)f.focus();return;}
   if(todoOpenPanels.has(id))todoOpenPanels.delete(id);else todoOpenPanels.add(id);
-  const el=document.getElementById(id);if(el)el.classList.toggle('open');
+  el.classList.toggle('open');
+  if(el.classList.contains('open')){const f=el.querySelector('textarea,input.todo-checklist-inp');if(f){todoAutoSize(el.querySelector('textarea'));f.focus();}}
 }
 function todoSaveNote(tabId,itemId,val){
   const tab=S.todoTabs.find(x=>x.id===tabId);if(!tab)return;
@@ -2069,7 +2086,7 @@ function renderAlarmPage(){
   addCard.innerHTML=`<div class="section-label">${t('alarmAddNew')}</div>
     <div class="row" style="flex-wrap:wrap;gap:8px">
       <input class="inp" id="al-desc-inp" placeholder="${t('alarmLabel')}…" style="flex:2;min-width:180px" onkeydown="if(event.key==='Enter')alarmAdd()">
-      <input class="inp" id="al-time-inp" type="time" style="min-width:120px" onclick="try{this.showPicker&&this.showPicker()}catch(e){}">
+      <input class="inp" id="al-time-inp" type="time" style="min-width:120px">
       <label style="display:inline-flex;align-items:center;gap:6px;cursor:pointer;white-space:nowrap;font-size:13px">
         <input type="checkbox" id="al-repeat-inp"> ${t('alarmRepeat')}
       </label>
