@@ -617,7 +617,7 @@ const I18N = {
     start: '▶ Start', stop: '⏸ Stop',
     checkIn: 'Příchod', checkOut: 'Odchod', attendanceLine: 'Docházka',
     attSettings: 'Docházka (píchačka)', attPresetOut: 'Předdefinovaný čas odchodu', attPresetHint: 'Po zaznamenání Příchodu se předvyplní do Odchodu. Ručně zadaný čas se nepřepisuje.', attAutoPunch: 'Automaticky zapsat příchod (spuštění aplikace) a odchod (zavření aplikace)', attAutoPunchHint: 'Příchod se zapíše při prvním spuštění aplikace v daný den, odchod při zavření. Ručně zadané časy se nepřepisují. O víkendech a ve dnech označených jako dovolená / nemoc / svátek se nezapisuje. Při násilném ukončení (vypnutí počítače, pád) se odchod nezapíše.', attHours: 'Pracovní doba (hodin za den)', attHoursHint: 'Čas nad touto dobou se v Kalendáři počítá jako přesčas. Práce o víkendu a ve dnech volna je celá přesčas.', calDayType: 'Typ dne', dayNone: '— běžný den —', dayVacation: 'Dovolená', daySick: 'Nemoc', dayHoliday: 'Státní svátek', calFillHolidays: 'Státní svátky ČR', sumWorked: 'Odpracováno', sumOvertime: 'Přesčas', sumDays: 'Odpracované dny', sumVacation: 'Dovolená (dny)', sumSick: 'Nemoc (dny)', sumHolidays: 'Státní svátky (dny)', calDayWorked: 'Odpracováno', calDayOver: 'přesčas', attAutoTip: 'Doplněno automaticky – přepíšete ručním zadáním',
-    trkViewTime: 'Čas', trkViewLog: 'Záznamy dne', logAdd: 'Přidat záznam (nadúkol → ticket a vykonaná práce)', logRefPh: 'Ticket / č. úkolu…', logTextPh: 'Vykonaná práce…', logAddBtn: '＋ Přidat', logNone: 'Pro tento den zatím nejsou žádné záznamy.', logCountTxt: 'Záznamů', colTicket: 'Ticket', colDesc: 'Práce', colParent: 'Nadúkol', logAkceNone: '— nadúkol —', logAkceTip: 'Nadúkol = akce z Trackeru. Samotný nadúkol (bez ticketu a popisu) vytvoří hlavičku skupiny.',
+    trkViewTime: 'Čas', trkViewLog: 'Záznamy dne', logAdd: 'Přidat záznam (nadúkol → ticket a vykonaná práce)', logRefPh: 'Ticket / č. úkolu…', logTextPh: 'Vykonaná práce…', logAddBtn: '＋ Přidat', logNone: 'Pro tento den zatím nejsou žádné záznamy.', logCountTxt: 'Záznamů', colTicket: 'Ticket', colDesc: 'Práce', colParent: 'Nadúkol', logSelGroup: 'Označit všechny záznamy v nadúkolu', logAkceNone: '— nadúkol —', logAkceTip: 'Nadúkol = akce z Trackeru. Samotný nadúkol (bez ticketu a popisu) vytvoří hlavičku skupiny.',
     overviewByProject: 'Přehled projektů za den', copy: '⧉ Kopírovat', copied: '✓ Zkopírováno',
     checkRowsOrCols: 'Zaškrtněte řádky nebo sloupce pro kopírování',
     colProject: 'Projekt', colAction: 'Akce', colTime: 'Čas',
@@ -667,7 +667,7 @@ const I18N = {
     start: '▶ Start', stop: '⏸ Stop',
     checkIn: 'Check-in', checkOut: 'Check-out', attendanceLine: 'Attendance',
     attSettings: 'Attendance (punch clock)', attPresetOut: 'Predefined check-out time', attPresetHint: 'Pre-filled into Check-out once Check-in is recorded. A manually entered time is never overwritten.', attAutoPunch: 'Automatically record check-in (app start) and check-out (app close)', attAutoPunchHint: 'Check-in is recorded on the first app start of the day, check-out on close. Manually entered times are never overwritten. Nothing is recorded on weekends or on days marked as vacation / sick / holiday. A forced shutdown (power off, crash) records no check-out.', attHours: 'Working hours (per day)', attHoursHint: 'Time above this is counted as overtime in the Calendar. Work on weekends and days off counts as overtime in full.', calDayType: 'Day type', dayNone: '— regular day —', dayVacation: 'Vacation', daySick: 'Sick leave', dayHoliday: 'Public holiday', calFillHolidays: 'Czech public holidays', sumWorked: 'Time worked', sumOvertime: 'Overtime', sumDays: 'Days worked', sumVacation: 'Vacation (days)', sumSick: 'Sick (days)', sumHolidays: 'Public holidays (days)', calDayWorked: 'Worked', calDayOver: 'overtime', attAutoTip: 'Filled in automatically – enter a time manually to override',
-    trkViewTime: 'Time', trkViewLog: 'Daily log', logAdd: 'Add entry (parent task → ticket and work done)', logRefPh: 'Ticket / task no…', logTextPh: 'Work done…', logAddBtn: '＋ Add', logNone: 'No entries for this day yet.', logCountTxt: 'Entries', colTicket: 'Ticket', colDesc: 'Work done', colParent: 'Parent task', logAkceNone: '— parent task —', logAkceTip: 'Parent task = a Tracker action. A parent task alone (no ticket or description) creates a group header.',
+    trkViewTime: 'Time', trkViewLog: 'Daily log', logAdd: 'Add entry (parent task → ticket and work done)', logRefPh: 'Ticket / task no…', logTextPh: 'Work done…', logAddBtn: '＋ Add', logNone: 'No entries for this day yet.', logCountTxt: 'Entries', colTicket: 'Ticket', colDesc: 'Work done', colParent: 'Parent task', logSelGroup: 'Select all entries in this parent task', logAkceNone: '— parent task —', logAkceTip: 'Parent task = a Tracker action. A parent task alone (no ticket or description) creates a group header.',
     overviewByProject: 'Project overview for the day', copy: '⧉ Copy', copied: '✓ Copied',
     checkRowsOrCols: 'Check rows or columns to copy',
     colProject: 'Project', colAction: 'Action', colTime: 'Time',
@@ -807,10 +807,11 @@ function renderStaticLabels(){
   renderAboutSection();
 }
 
-const APP_VERSION = '1.15.1';
+const APP_VERSION = '1.16.0';
 const APP_BUILD_DATE = '2026-10-27';
 const AI_MODEL_INFO = 'Claude (Anthropic)';
 const CHANGELOG = [
+  { version: '1.16.0', notes: { cs: 'Záznamy dne: zaškrtávací pole u hlavičky nadúkolu označí všechny záznamy jen v tomto nadúkolu (částečný výběr se zobrazí jako neúplné zaškrtnutí, nadřazené pole „vše“ to také respektuje). Kopírování označených záznamů bez vybraných sloupců má stejný formát jako kopírování všeho: „Projekt - Nadúkol“ a pod ním řádky „ticket - popis“, jen pro označené záznamy.', en: 'Daily log: the checkbox on a parent-task header selects all entries of that parent task only (a partial selection shows as indeterminate, the select-all box respects it too). Copying selected entries with no columns chosen uses the same format as copying everything: "Project - Parent task" with "ticket - description" lines below, for the selected entries only.' } },
   { version: '1.15.1', notes: { cs: 'Ukládání: aplikace po každé změně hned vynutí zápis dat na disk (nové preload.js). Chrání před ztrátou posledních změn, když se aplikace ukončí násilně (zavření terminálu, Správce úloh, pád).', en: 'Saving: after every change the app now forces the data to be written to disk right away (new preload.js). Protects the latest changes when the app is terminated abruptly (closing the terminal, Task Manager, crash).' } },
   { version: '1.15.0', notes: { cs: 'Ukolovník: poznámka a checklist (podúkoly) jsou u úkolu vždy vidět, pokud mají obsah – ikony slouží k přidání nového obsahu a přesunu kurzoru. Řazení: urgentní úkoly nahoře, hned pod nimi od nejnovějšího (podle data, při shodě naposledy přidaný první), splněné úkoly dole.', en: 'To-Do: a task note and checklist (sub-tasks) are always visible when they have content – the icons are for adding new content and moving the cursor there. Sorting: urgent tasks on top, right below them newest first (by date, same date: most recently added first), completed tasks at the bottom.' } },
   { version: '1.14.1', notes: { cs: 'Oprava úpravy času: pole času se dají znovu psát z klávesnice (kliknutím na hodiny/minuty a zadáním číslic). Dřív klik otevřel výběr s rolováním, který psaní blokoval; výběr zůstává dostupný přes ikonu hodin v poli.', en: 'Time editing fix: time fields can be typed into again (click the hours/minutes and enter digits). Previously a click opened the scroll picker, which blocked typing; the picker is still available via the clock icon in the field.' } },
@@ -1138,13 +1139,15 @@ function trkRenderLog(){
       const col=b.proj?getProj(b.proj).color:'#6a6660';
       const title=[b.proj,b.akce].filter(Boolean).join(' - ');
       const del=b.header?` <button class="del-btn" onclick="trkLogDelete('${b.header.id}')">×</button>`:'';
-      html+=`<tr class="grp"><td class="cc"></td><td colspan="4"><span class="cdot" style="background:${col}"></span><strong>${escH(title)}</strong> <span style="color:var(--text5);font-weight:400">(${b.items.length})</span></td><td style="white-space:nowrap;text-align:right"><button class="sbtn" style="padding:3px 8px;text-transform:none" title="${escH(t('logAddBtn'))}" onclick="trkLogFillGroup(${bi})">＋</button>${del}</td></tr>`;
+      const grpCb=b.items.length?`<input type="checkbox" data-grp="${bi}" title="${escH(t('logSelGroup'))}" ${b.items.every(i=>trkLogRowChecks[i.id])?'checked':''} onchange="trkLogToggleGroup(${bi},this.checked)">`:'';
+      html+=`<tr class="grp"><td class="cc">${grpCb}</td><td colspan="4"><span class="cdot" style="background:${col}"></span><strong>${escH(title)}</strong> <span style="color:var(--text5);font-weight:400">(${b.items.length})</span></td><td style="white-space:nowrap;text-align:right"><button class="sbtn" style="padding:3px 8px;text-transform:none" title="${escH(t('logAddBtn'))}" onclick="trkLogFillGroup(${bi})">＋</button>${del}</td></tr>`;
       b.items.forEach(it=>{html+=trkLogRowHtml(it,true);});
     });
     html+='</tbody></table></div>';
     list.innerHTML=html;
   }
   document.getElementById('trk-log-copybar').style.display=items.length?'':'none';
+  trkLogSyncAll();
   trkLogUpdateCopyBar();
 }
 function trkLogFillGroup(bi){
@@ -1154,7 +1157,21 @@ function trkLogFillGroup(bi){
   document.getElementById('trk-log-ref').focus();
 }
 function trkLogToggleAll(ch){(S.trkLog[trkDate]||[]).forEach(i=>{if(!(i.akce&&!i.ref&&!i.text))trkLogRowChecks[i.id]=ch;});trkRenderLog();}
-function trkLogSyncAll(){const items=(S.trkLog[trkDate]||[]).filter(i=>!(i.akce&&!i.ref&&!i.text));const cb=document.querySelector('#trk-log-list thead input[type=checkbox]');if(cb)cb.checked=items.length>0&&items.every(i=>trkLogRowChecks[i.id]);}
+function trkLogSyncAll(){
+  const items=(S.trkLog[trkDate]||[]).filter(i=>!(i.akce&&!i.ref&&!i.text));
+  const cb=document.querySelector('#trk-log-list thead input[type=checkbox]');
+  if(cb){const n=items.filter(i=>trkLogRowChecks[i.id]).length;cb.checked=items.length>0&&n===items.length;cb.indeterminate=n>0&&n<items.length;}
+  document.querySelectorAll('#trk-log-list input[data-grp]').forEach(g=>{
+    const b=trkLogBlocks[+g.dataset.grp];if(!b)return;
+    const n=b.items.filter(i=>trkLogRowChecks[i.id]).length;
+    g.checked=n===b.items.length&&n>0;g.indeterminate=n>0&&n<b.items.length;
+  });
+}
+function trkLogToggleGroup(bi,ch){
+  const b=trkLogBlocks[bi];if(!b||b.type!=='group')return;
+  b.items.forEach(i=>{if(ch)trkLogRowChecks[i.id]=true;else delete trkLogRowChecks[i.id];});
+  trkRenderLog();
+}
 function trkLogUpdateCopyBar(){
   const items=S.trkLog[trkDate]||[],sel=items.filter(i=>trkLogRowChecks[i.id]);
   const names={projekt:t('colProject'),akce:t('colParent'),ticket:t('colTicket'),popis:t('colDesc')};
@@ -1197,17 +1214,20 @@ function trkLogCopy(){
   const cols=order.filter(k=>trkLogColChecks[k]);
   const sel=items.filter(i=>trkLogRowChecks[i.id]);
   const lines=[];
-  if(!sel.length&&!cols.length){
-    // default: "project - parent task" header, below it "ticket - description" lines; entries without parent as before
+  if(!cols.length){
+    // no column chosen: "project - parent task" header, below it "ticket - description" lines; entries without parent as "project - ticket - description".
+    // With rows selected only those rows (and the headers of their parent tasks) are copied.
+    const pick=sel.length?new Set(sel.map(i=>i.id)):null;
     trkLogGroups(items).forEach(b=>{
-      if(b.type==='row'){const l=[b.item.proj,b.item.ref,b.item.text].filter(Boolean).join(' - ');if(l)lines.push(l);return;}
+      if(b.type==='row'){if(pick&&!pick.has(b.item.id))return;const l=[b.item.proj,b.item.ref,b.item.text].filter(Boolean).join(' - ');if(l)lines.push(l);return;}
+      const kids=pick?b.items.filter(i=>pick.has(i.id)):b.items;
+      if(pick&&!kids.length)return;
       lines.push([b.proj,b.akce].filter(Boolean).join(' - '));
-      b.items.forEach(it=>{const l=[it.ref,it.text].filter(Boolean).join(' - ');if(l)lines.push(l);});
+      kids.forEach(it=>{const l=[it.ref,it.text].filter(Boolean).join(' - ');if(l)lines.push(l);});
     });
   }else{
-    const useCols=cols.length?cols:order;
     const rows=(sel.length?sel:items.filter(i=>!(i.akce&&!i.ref&&!i.text)));
-    rows.forEach(it=>{const p=[];if(useCols.includes('projekt'))p.push(it.proj);if(useCols.includes('akce'))p.push(it.akce);if(useCols.includes('ticket'))p.push(it.ref);if(useCols.includes('popis'))p.push(it.text);const l=p.filter(Boolean).join(' - ');if(l)lines.push(l);});
+    rows.forEach(it=>{const p=[];if(cols.includes('projekt'))p.push(it.proj);if(cols.includes('akce'))p.push(it.akce);if(cols.includes('ticket'))p.push(it.ref);if(cols.includes('popis'))p.push(it.text);const l=p.filter(Boolean).join(' - ');if(l)lines.push(l);});
   }
   if(!lines.length)return;
   copyText(lines.join('\n'),'trk-log-copy-btn');
